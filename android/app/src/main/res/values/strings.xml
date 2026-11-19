@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">RailPulse</string>
+    <!-- CHANGE this only after the RailPulse backend is deployed to your own HTTPS domain. -->
+    <string name="website_url" translatable="false">https://YOUR-RAILPULSE-DOMAIN.example</string>
+</resources>

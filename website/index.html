@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="hi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#081b33" />
+  <meta name="description" content="RailPulse — PNR और लाइव ट्रेन रनिंग स्टेटस। वास्तविक अपडेट API key जोड़ने के बाद उपलब्ध।" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>RailPulse — PNR & Train Status</title>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="site-header">
+      <a href="#home" class="brand" aria-label="RailPulse home">
+        <span class="brand-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="3" width="14" height="15" rx="4" stroke="currentColor" stroke-width="1.8"/><path d="M5 11h14M8 7h3M15 7h1M8 21l2-3m6 0 2 3M9 15h1m4 0h1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+        <span>Rail<span class="brand-highlight">Pulse</span><small>Journey companion</small></span>
+      </a>
+      <span class="demo-pill" id="api-indicator"><span class="pulse-dot"></span> API जाँच जारी…</span>
+    </header>
+
+    <main id="home">
+      <section class="hero" aria-label="Introduction">
+        <div class="hero-copy">
+          <span class="eyebrow"><span class="tiny-line"></span> YOUR TRAIN, YOUR UPDATE</span>
+          <h1>सफ़र की हर <span>अपडेट,</span><br/>एक ही जगह।</h1>
+          <p>PNR स्टेटस और ट्रेन की रनिंग जानकारी के लिए आसान, तेज़ और मोबाइल-फ्रेंडली अनुभव।</p>
+          <div class="hero-tags"><span>✓ PNR enquiry</span><span>✓ Running status</span><span>✓ Mobile ready</span></div>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="ring ring-one"></div><div class="ring ring-two"></div>
+          <svg class="train-illustration" viewBox="0 0 320 210" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M35 168H294" stroke="#A6C8E1" stroke-width="3" stroke-linecap="round" opacity=".65"/>
+            <path d="M48 179H283" stroke="#A6C8E1" stroke-width="2" stroke-linecap="round" opacity=".4"/>
+            <rect x="77" y="29" width="167" height="143" rx="31" fill="#F7F9FC"/>
+            <rect x="87" y="42" width="147" height="89" rx="21" fill="#142D4D"/>
+            <path d="M100 65C100 58 106 52 113 52H207C214 52 220 58 220 65V109C220 115 214 121 207 121H113C106 121 100 115 100 109V65Z" fill="#27658B"/>
+            <path d="M159 52V121" stroke="#AEDBEB" opacity=".65" stroke-width="3"/>
+            <path d="M114 121L151 52H166L130 121" fill="#4D93B2" opacity=".6"/>
+            <rect x="119" y="35" width="82" height="10" rx="5" fill="#F3A75D"/>
+            <rect x="94" y="138" width="26" height="16" rx="8" fill="#FFAA61"/>
+            <rect x="201" y="138" width="26" height="16" rx="8" fill="#FFAA61"/>
+            <path d="M109 173L97 189M213 173L224 189" stroke="#F7F9FC" stroke-width="11" stroke-linecap="round"/>
+            <path d="M78 165H244" stroke="#EFB27D" stroke-width="9" stroke-linecap="round"/>
+            <path d="M67 193H254" stroke="#ADC6D5" stroke-width="5" stroke-linecap="round"/>
+            <path d="M48 200H272" stroke="#ADC6D5" stroke-width="3" stroke-linecap="round" opacity=".55"/>
+          </svg>
+          <div class="art-chip"><span class="art-chip-indicator"></span> All aboard</div>
+        </div>
+      </section>
+
+      <section class="workspace" aria-label="Railway enquiries">
+        <div class="enquiry-card">
+          <div class="card-header"><div><p class="section-kicker">QUICK ENQUIRY</p><h2>क्या चेक करना है?</h2></div><div class="header-mark" aria-hidden="true">✦</div></div>
+          <div class="tabs" role="tablist" aria-label="Status type">
+            <button id="tab-pnr" role="tab" aria-selected="true" aria-controls="panel-pnr" class="tab active" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg> PNR Status</button>
+            <button id="tab-train" role="tab" aria-selected="false" aria-controls="panel-train" class="tab" type="button" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="15" rx="4"/><path d="M5 11h14M8 21l2-3m6 0 2 3M9 15h1m5 0h1"/></svg> Live Train Status</button>
+          </div>
+
+          <div id="panel-pnr" role="tabpanel" aria-labelledby="tab-pnr">
+            <form id="pnr-form" novalidate>
+              <label for="pnr-input" class="field-label">10 अंकों का PNR नंबर</label>
+              <div class="input-wrap"><span class="input-icon" aria-hidden="true">#</span><input id="pnr-input" type="text" autocomplete="off" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" placeholder="उदाहरण: 1234567890" aria-describedby="pnr-hint" required /></div>
+              <p id="pnr-hint" class="field-hint">सिर्फ अपना या अनुमति वाला PNR डालें। 10-digit PNR आपके टिकट पर मिलता है।</p>
+              <button type="submit" class="primary-button"><span>PNR Status चेक करें</span><span aria-hidden="true">→</span></button>
+            </form>
+            <div class="secondary-actions"><button type="button" id="demo-pnr" class="demo-button">↗ डेमो रिज़ल्ट देखें</button><a href="https://indianrail.gov.in/enquiry/PNR/PnrEnquiry.html?locale=en" target="_blank" rel="noopener noreferrer">Official PNR website ↗</a></div>
+          </div>
+
+          <div id="panel-train" role="tabpanel" aria-labelledby="tab-train" hidden>
+            <form id="train-form" novalidate>
+              <label for="train-input" class="field-label">5 अंकों का ट्रेन नंबर</label>
+              <div class="input-wrap"><span class="input-icon" aria-hidden="true">#</span><input id="train-input" type="text" autocomplete="off" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" placeholder="उदाहरण: 12951" required /></div>
+              <label for="journey-date" class="field-label date-label">ट्रेन की प्रारंभ तारीख (Journey start date)</label>
+              <div class="input-wrap date-wrap"><input id="journey-date" type="date" required /></div>
+              <p class="field-hint">ट्रेन अपने शुरुआती स्टेशन से जिस तारीख को चली, वही चुनें।</p>
+              <button type="submit" class="primary-button"><span>Train Running Status देखें</span><span aria-hidden="true">→</span></button>
+            </form>
+            <div class="secondary-actions"><button type="button" id="demo-train" class="demo-button">↗ डेमो रिज़ल्ट देखें</button><a href="https://enquiry.indianrail.gov.in/ntes/" target="_blank" rel="noopener noreferrer">Official NTES website ↗</a></div>
+          </div>
+          <div id="feedback" class="feedback" role="status" aria-live="polite" hidden></div>
+        </div>
+
+        <aside class="side-card">
+          <div class="side-icon" aria-hidden="true">✳</div>
+          <p class="section-kicker">BEFORE YOU CHECK</p>
+          <h2>आसान सफ़र,<br/>सही जानकारी।</h2>
+          <p>रेलवे API जुड़ने पर <strong>लाइव जानकारी</strong> दिखेगी। डेमो रिज़ल्ट हमेशा अलग से चिह्नित रहेंगे।</p>
+          <div class="mini-divider"></div>
+          <div class="steps"><div><span>01</span><p>PNR या ट्रेन नंबर डालें</p></div><div><span>02</span><p>RailKit API से जानकारी प्राप्त करें</p></div><div><span>03</span><p>स्टेटस तुरंत देखें</p></div></div>
+          <div class="notice"><span aria-hidden="true">ⓘ</span><p><span id="connection-note">लाइव स्टेटस के लिए सर्वर पर API key जरूरी है।</span></p></div>
+        </aside>
+      </section>
+
+      <section id="result" class="result-section" aria-live="polite" hidden></section>
+      <section class="bottom-note"><span aria-hidden="true">🔒</span><p>PNR नंबर हमारे डेटाबेस में सेव नहीं किया जाता; लाइव enquiry पर यह Railway API provider को भेजा जाता है। यह Indian Railways / IRCTC का आधिकारिक ऐप नहीं है।</p></section>
+    </main>
+    <footer>© RailPulse · Journey companion · Independent app · Not affiliated with Indian Railways</footer>
+  </div>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
