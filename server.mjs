@@ -186,7 +186,7 @@ export function createApp({ apiKey = process.env.RAILKIT_API_KEY, apiUrl = proce
     if (list.length >= 12) { recent.set(ip, list); return false; }
     list.push(now); recent.set(ip, list); return true;
   }
-  return http.createServer(async (req, res) => {
+  const handleRequest = async (req, res) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'no-referrer');
     res.setHeader('X-Frame-Options', 'DENY');
@@ -231,5 +231,6 @@ export function createApp({ apiKey = process.env.RAILKIT_API_KEY, apiUrl = proce
       error(res, status, e.message || 'Request failed');
     }
   });
+   return http.createServer(handleRequest);
 }
 export default createApp;
