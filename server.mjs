@@ -230,7 +230,7 @@ export function createApp({ apiKey = process.env.RAILKIT_API_KEY, apiUrl = proce
       const status = [400, 404, 413, 429, 503].includes(e.status) ? e.status : 502;
       error(res, status, e.message || 'Request failed');
     }
-  });
+  };
    return http.createServer(handleRequest);
 }
 export default createApp;

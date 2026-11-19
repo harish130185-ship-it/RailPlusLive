@@ -9,3 +9,6 @@ android/app/build/
 *.aab
 *.jks
 *.keystore
+
+.vercel
+.env*
