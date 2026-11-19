@@ -232,4 +232,3 @@ export function createApp({ apiKey = process.env.RAILKIT_API_KEY, apiUrl = proce
     }
   });
 }
-export default createApp;
