@@ -232,10 +232,4 @@ export function createApp({ apiKey = process.env.RAILKIT_API_KEY, apiUrl = proce
     }
   });
 }
-
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const port = Number(process.env.PORT) || 3000;
-  createApp().listen(port, '0.0.0.0', () => {
-    process.stdout.write(`RailPulse site: http://localhost:${port}\nLive provider: ${process.env.RAILKIT_API_KEY && process.env.RAILKIT_API_KEY !== 'PASTE_YOUR_OWN_RAILKIT_KEY_HERE' ? 'configured (not verified)' : 'API key required'}\n`);
-  });
-}
+export default createApp;
