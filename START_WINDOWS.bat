@@ -9,9 +9,9 @@ if errorlevel 1 (
 echo Open http://localhost:3000 in Chrome after the server starts.
 echo.
 if exist .env (
-  node --env-file=.env server.mjs
+  node --env-file=.env app-server.mjs
 ) else (
   echo Railway API key has not been added. Demo UI and official links are available.
-  node server.mjs
+  node app-server.mjs
 )
 pause

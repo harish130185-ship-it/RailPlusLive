@@ -30,23 +30,23 @@ RailKit एक **independent third-party** रेलवे API है, Indian Ra
    **Windows PowerShell**
    ```powershell
    node --version
-   node --env-file=.env server.mjs
+   node --env-file=.env app-server.mjs
    ```
 
    **Linux/macOS**
    ```bash
-   node --env-file=.env server.mjs
+   node --env-file=.env app-server.mjs
    ```
 
 5. Browser में `http://localhost:3000` खोलें। Website और `/api/health` दोनों इसी Node server से चलते हैं।
 6. अपने सही PNR या live train को check करें। API key या provider error होने पर साफ error दिखाई देगा; fabricated live data नहीं।
 
-> अगर key अभी नहीं है, `node server.mjs` चलाएँ: UI/demo काम करेगा, live status पर स्पष्ट API key required message मिलेगा।
+> अगर key अभी नहीं है, `node app-server.mjs` चलाएँ: UI/demo काम करेगा, live status पर स्पष्ट API key required message मिलेगा।
 
 ## B. Live Website publish करें
 
-1. Node.js server support करने वाली cloud hosting (जैसे Render/Railway/VPS) चुनें। केवल static hosting (GitHub Pages) से लाइव backend नहीं चलेगा।
-2. project root upload करें। Start command: `node server.mjs` ; app `PORT` environment variable पढ़ता है।
+1. Vercel या Node.js server support करने वाली cloud hosting (जैसे Render/Railway/VPS) चुनें। केवल static hosting (GitHub Pages) से लाइव backend नहीं चलेगा।
+2. project root upload करें। Vercel पर `api/` functions deploy होंगे; दूसरे Node.js hosts पर Start command `node app-server.mjs` है और app `PORT` environment variable पढ़ता है।
 3. Hosting provider की **secret environment variable** में `RAILKIT_API_KEY` सेट करें। Key को website/app code या GitHub में paste न करें।
 4. HTTPS URL चालू करें; वेबसाइट और API server एक ही डोमेन पर उपलब्ध होने चाहिए।
 5. अपना HTTPS URL browser में खोलें; `https://your-domain/api/health` में `ready:true` का अर्थ सिर्फ़ key **configured** है, upstream से सफल live response का प्रमाण नहीं। असली valid PNR और train पर check करके verify करें।
@@ -79,7 +79,8 @@ npm test
 ## Files
 
 - `website/` — HTML/CSS/JS, PWA manifest और offline app shell
-- `server.mjs` — live API gateway, response normalization, validation, request limit
+- `app-server.mjs` — local/Node-host live API gateway, response normalization, validation, request limit
+- `api/` — Vercel serverless API handler
 - `.env.example` — server secret configuration template
 - `android/` — Android Studio WebView app source
 - `tests/` — sample-based automated tests

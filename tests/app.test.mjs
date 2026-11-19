@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createApp, normalizePNR, normalizeTrain } from '../server.mjs';
+import { createApp, normalizePNR, normalizeTrain } from '../app-server.mjs';
 
 const pnrMock = { success: true, data: {
   pnr: '1234567890', train: {number:'12951', name:'Example Express'},

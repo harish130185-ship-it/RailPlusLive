@@ -133,7 +133,7 @@ async function readBody(req) {
   catch { throw Object.assign(new Error('Invalid JSON body'), { status: 400 }); }
 }
 
-export function createApp({ apiKey = process.env.RAILKIT_API_KEY, apiUrl = process.env.RAILKIT_API_URL || PROVIDER_DEFAULT, fetchImpl = fetch, sdkImpl = null, trustProxy = process.env.TRUST_PROXY === 'true' } = {}) {
+export function createHandler({ apiKey = process.env.RAILKIT_API_KEY, apiUrl = process.env.RAILKIT_API_URL || PROVIDER_DEFAULT, fetchImpl = fetch, sdkImpl = null, trustProxy = process.env.TRUST_PROXY === 'true' } = {}) {
   const recent = new Map();
   const validKey = apiKey && apiKey !== 'PASTE_YOUR_OWN_RAILKIT_KEY_HERE';
   async function providerGet(route) {
@@ -231,6 +231,7 @@ export function createApp({ apiKey = process.env.RAILKIT_API_KEY, apiUrl = proce
       error(res, status, e.message || 'Request failed');
     }
   };
-   return http.createServer(handleRequest);
+   return handleRequest;
 }
+export function createApp(options) { return http.createServer(createHandler(options)); }
 export default createApp;
