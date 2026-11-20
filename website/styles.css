@@ -1552,6 +1552,170 @@ a:hover {
 }
 
 /* ==========================================================================
+   Autocomplete Dropdowns & Suggestions
+   ========================================================================== */
+.autocomplete-container {
+  position: relative;
+  width: 100%;
+}
+
+.autocomplete-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 1000;
+  margin-top: 3px;
+  display: none;
+}
+
+.autocomplete-dropdown.open {
+  display: block;
+}
+
+.autocomplete-item {
+  padding: 9px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.84rem;
+  transition: background 0.12s ease;
+}
+
+.autocomplete-item:last-child {
+  border-bottom: none;
+}
+
+.autocomplete-item:hover, .autocomplete-item.active {
+  background: #f1f5f9;
+  color: var(--brand-primary);
+}
+
+.ac-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ac-code-badge {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.78rem;
+  background: #eff6ff;
+  color: #1d4ed8;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.ac-name-text {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.ac-sub-text {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+/* ==========================================================================
+   Enhanced PNR Ticket Styles (Full Details & Charting Status)
+   ========================================================================== */
+.chart-status-banner {
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.chart-status-banner.prepared {
+  background: #f0fdf4;
+  border-left: 5px solid #16a34a;
+}
+
+.chart-status-banner.not-prepared {
+  background: #fffbeb;
+  border-left: 5px solid #f59e0b;
+}
+
+.chart-status-banner .chart-status-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.chart-status-banner.prepared .chart-status-icon {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.chart-status-banner.not-prepared .chart-status-icon {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.chart-status-banner h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.chart-status-banner.prepared h4 {
+  color: #15803d;
+}
+
+.chart-status-banner.not-prepared h4 {
+  color: #b45309;
+}
+
+.chart-status-banner p {
+  font-size: 0.8rem;
+  color: #475569;
+}
+
+.ticket-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  padding: 14px 20px;
+  background: #f8fafc;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-item .detail-lbl {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.detail-item .detail-val {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #0f294a;
+  margin-top: 2px;
+}
+
+/* ==========================================================================
    Responsive Adaptations
    ========================================================================== */
 @media (max-width: 768px) {
@@ -1588,5 +1752,35 @@ a:hover {
   .footer-container {
     grid-template-columns: 1fr;
     gap: 20px;
+  }
+
+  .train-schedule-row {
+    grid-template-columns: 1fr auto 1fr;
+    gap: 8px;
+  }
+
+  .train-classes-container {
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .train-schedule-row {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 6px;
+  }
+
+  .stn-block.source, .stn-block.destination {
+    text-align: center;
+  }
+
+  .stn-journey-mid {
+    width: 100%;
+    margin: 4px 0;
+  }
+
+  .train-classes-container {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

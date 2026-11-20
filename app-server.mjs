@@ -61,17 +61,32 @@ export function normalizePNR(payload, number) {
   if (!payload || payload.success === false || !source || typeof source !== 'object') throw Object.assign(new Error('PNR data not returned by provider'), { status: 502 });
   const details = source.journey || {};
   const passengers = Array.isArray(source.passengers) ? source.passengers : [];
+  
+  let chartStatus = first(source.chart?.status, source.chartStatus);
+  if (!chartStatus && source.chartPrepared !== undefined) {
+    chartStatus = source.chartPrepared ? 'Chart Prepared' : 'Chart Not Prepared';
+  }
+
   return {
     pnr: number,
     trainNumber: first(source.train?.number, source.trainNo, source.trainNumber),
     trainName: first(source.train?.name, source.trainName),
-    from: stationName(details.source || source.source),
-    to: stationName(details.destination || source.destination),
+    trainType: first(source.train?.type, source.trainType),
+    from: stationName(details.source || source.source || source.from),
+    to: stationName(details.destination || source.destination || source.to),
+    boardingPoint: stationName(details.boardingPoint || source.boardingPoint || details.source || source.source),
+    reservationUpto: stationName(details.reservationUpto || source.reservationUpto || details.destination || source.destination),
+    chartingStation: stationName(source.chartingStation || source.chartingPoint || details.source || source.source),
+    journeyClass: first(details.class, source.journeyClass, source.class),
+    quota: first(details.quota, source.quota),
     journeyDate: first(details.date, details.journeyDate, source.journeyDate, source.date),
-    chartStatus: first(source.chart?.status, source.chartStatus) || 'Not reported',
+    chartStatus: chartStatus || 'Not reported',
     passengers: passengers.map((person) => ({
       bookingStatus: first(person?.booking?.details, person?.booking?.status, person?.bookingStatus) || 'Not reported',
-      currentStatus: first(person?.current?.details, person?.current?.status, person?.currentStatus) || 'Not reported'
+      currentStatus: first(person?.current?.details, person?.current?.status, person?.currentStatus) || 'Not reported',
+      coach: first(person?.coach, person?.current?.coach, person?.booking?.coach),
+      berth: first(person?.berth, person?.berthNumber, person?.current?.berth, person?.booking?.berth),
+      berthType: first(person?.berthType, person?.current?.berthType, person?.booking?.berthType)
     })),
     lastUpdated: first(source.lastUpdated, source.lastUpdate),
     source: 'RailKit',
@@ -158,6 +173,16 @@ function normalizeStations(payload) {
     code: first(station.code, station.stationCode, station.station_code),
     name: first(station.name, station.stationName, station.station_name)
   })).filter(station => station.code && station.name);
+}
+function normalizeTrainsSearch(payload) {
+  const data = providerData(payload);
+  const list = Array.isArray(data?.trains) ? data.trains : (Array.isArray(data) ? data : []);
+  return list.slice(0, 10).map(t => ({
+    number: first(t.trainNo, t.trainNumber, t.number),
+    name: first(t.trainName, t.name),
+    type: first(t.trainType, t.type),
+    days: first(t.daysOfRun, t.runningDays)
+  })).filter(t => t.number && t.name);
 }
 function normalizeTrainRoute(payload) {
   const data = providerData(payload);
@@ -350,6 +375,15 @@ export function createHandler({ apiKey = process.env.RAILKIT_API_KEY, apiUrl = p
         const result = normalizeStations(await providerCall('stationsByName', [query]));
         return sendJson(res, 200, { success: true, data: { stations: result } });
       }
+      if (pathname === '/api/trains') {
+        if (req.method !== 'GET') return error(res, 405, 'Method not allowed');
+        if (!allowRequest(req)) return error(res, 429, 'बहुत सारे अनुरोध किए गए। 1 मिनट बाद कोशिश करें।');
+        const query = text(requestUrl.searchParams.get('q'));
+        if (query.length < 2 || query.length > 50) return error(res, 400, 'ट्रेन खोजने के लिए कम से कम 2 अक्षर या अंक दर्ज करें।');
+        const isNum = /^\d+$/.test(query);
+        const result = normalizeTrainsSearch(await providerCall(isNum ? 'trainByNumber' : 'trainsByName', [query]));
+        return sendJson(res, 200, { success: true, data: { trains: result } });
+      }
       if (pathname === '/api/route') {
         if (req.method !== 'GET') return error(res, 405, 'Method not allowed');
         if (!allowRequest(req)) return error(res, 429, 'बहुत सारे अनुरोध किए गए। 1 मिनट बाद कोशिश करें।');
@@ -412,7 +446,13 @@ export function createHandler({ apiKey = process.env.RAILKIT_API_KEY, apiUrl = p
       if (!staticDef || req.method !== 'GET') return error(res, 404, 'Page not found');
       const [file, mime] = staticDef;
       const bytes = await readFile(path.join(SITE, file));
-      res.writeHead(200, { 'Content-Type': mime, 'Cache-Control': 'no-cache, no-store, must-revalidate' });
+      res.writeHead(200, { 
+        'Content-Type': mime, 
+        'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Clear-Site-Data': '"cache", "storage"'
+      });
       res.end(bytes);
     } catch (e) {
       const status = [400, 404, 413, 429, 503].includes(e.status) ? e.status : 502;

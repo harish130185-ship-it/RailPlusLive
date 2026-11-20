@@ -7,8 +7,20 @@
   <meta name="description" content="RailPlus — भारतीय रेल PNR, लाइव ट्रेन रनिंग, सीट उपलब्धता, किराया व रूट पूछताछ सेवा।" />
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="stylesheet" href="styles.css?v=6.0" />
+  <link rel="stylesheet" href="styles.css?v=10.0" />
   <title>RailPlus — PNR, लाइव ट्रेन, सीट, किराया व रूट पूछताछ</title>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(regs) {
+        for (var r of regs) { r.unregister(); }
+      });
+    }
+    if ('caches' in window) {
+      caches.keys().then(function(keys) {
+        keys.forEach(function(k) { caches.delete(k); });
+      });
+    }
+  </script>
 </head>
 <body>
   <!-- Header / Navigation -->
@@ -62,7 +74,7 @@
 
       <!-- Central Search Box / Enquiry Card -->
       <section class="enquiry-card">
-        <!-- 5 Classic Tab Navigation -->
+        <!-- 5 Classic Tab Navigation (PNR Always First as Requested) -->
         <div class="enquiry-tabs" role="tablist">
           <button id="tab-pnr" class="tab-button active" role="tab" aria-selected="true" aria-controls="panel-pnr" type="button">
             <!-- Ticket Icon -->
@@ -74,15 +86,14 @@
             <span>PNR स्थिति</span>
           </button>
 
-          <button id="tab-train" class="tab-button" role="tab" aria-selected="false" aria-controls="panel-train" type="button">
-            <!-- Live Train Icon -->
+          <button id="tab-route" class="tab-button" role="tab" aria-selected="false" aria-controls="panel-route" type="button">
+            <!-- Map Route Icon -->
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="4" y="3" width="16" height="14" rx="3"></rect>
-              <circle cx="8" cy="13" r="1.5" fill="currentColor"></circle>
-              <circle cx="16" cy="13" r="1.5" fill="currentColor"></circle>
-              <path d="M8 21l2-4m4 0 2 4"></path>
+              <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+              <line x1="8" y1="2" x2="8" y2="18"></line>
+              <line x1="16" y1="6" x2="16" y2="22"></line>
             </svg>
-            <span>लाइव ट्रेन (Live)</span>
+            <span>ट्रेन खोजें (Route)</span>
           </button>
 
           <button id="tab-seats" class="tab-button" role="tab" aria-selected="false" aria-controls="panel-seats" type="button">
@@ -94,6 +105,17 @@
             <span>सीट उपलब्धता (Seats)</span>
           </button>
 
+          <button id="tab-train" class="tab-button" role="tab" aria-selected="false" aria-controls="panel-train" type="button">
+            <!-- Live Train Icon -->
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="4" y="3" width="16" height="14" rx="3"></rect>
+              <circle cx="8" cy="13" r="1.5" fill="currentColor"></circle>
+              <circle cx="16" cy="13" r="1.5" fill="currentColor"></circle>
+              <path d="M8 21l2-4m4 0 2 4"></path>
+            </svg>
+            <span>लाइव रनिंग (Live Train)</span>
+          </button>
+
           <button id="tab-fare" class="tab-button" role="tab" aria-selected="false" aria-controls="panel-fare" type="button">
             <!-- Fare / Currency Icon -->
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -102,19 +124,9 @@
             </svg>
             <span>किराया सूची (Fare)</span>
           </button>
-
-          <button id="tab-route" class="tab-button" role="tab" aria-selected="false" aria-controls="panel-route" type="button">
-            <!-- Map Route Icon -->
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
-              <line x1="8" y1="2" x2="8" y2="18"></line>
-              <line x1="16" y1="6" x2="16" y2="22"></line>
-            </svg>
-            <span>ट्रेन खोजें (Route)</span>
-          </button>
         </div>
 
-        <!-- Panel 1: PNR Enquiry Form -->
+        <!-- Panel 1: PNR Enquiry Form (Default Active) -->
         <div id="panel-pnr" class="tab-panel active" role="tabpanel" aria-labelledby="tab-pnr">
           <form id="pnr-form" class="search-form" novalidate>
             <div class="form-group-row">
@@ -172,29 +184,151 @@
           </form>
         </div>
 
-        <!-- Panel 2: Live Train Status Form -->
+        <!-- Panel 2: Route & Trains Between Stations Form -->
+        <div id="panel-route" class="tab-panel" role="tabpanel" aria-labelledby="tab-route" hidden>
+          <form id="route-form" class="search-form" novalidate>
+            <div class="form-grid-row">
+              <div class="field-container autocomplete-container">
+                <label for="route-from-input" class="field-label">प्रस्थान स्टेशन (From Station)</label>
+                <div class="input-wrapper">
+                  <input id="route-from-input" class="station-autocomplete" type="text" placeholder="उदा. NDLS (नई दिल्ली)" style="text-transform:uppercase;" required autocomplete="off" />
+                </div>
+                <span class="field-subtext">स्टेशन कोड या नाम टाइप करें।</span>
+              </div>
+
+              <div class="field-container autocomplete-container">
+                <label for="route-to-input" class="field-label">गंतव्य स्टेशन (To Station)</label>
+                <div class="input-wrapper">
+                  <input id="route-to-input" class="station-autocomplete" type="text" placeholder="उदा. MMCT (मुंबई सेंट्रल)" style="text-transform:uppercase;" required autocomplete="off" />
+                </div>
+                <span class="field-subtext">गंतव्य स्टेशन कोड या नाम।</span>
+              </div>
+
+              <div class="field-container">
+                <label for="route-date-input" class="field-label">यात्रा तिथि (वैकल्पिक)</label>
+                <div class="input-wrapper">
+                  <input id="route-date-input" type="date" />
+                </div>
+                <span class="field-subtext">तिथि चुनें (वैकल्पिक)।</span>
+              </div>
+
+              <div class="submit-container">
+                <button type="submit" id="btn-submit-route" class="submit-button">
+                  <span class="btn-text">ट्रेनें खोजें</span>
+                  <span class="btn-loader" aria-hidden="true"></span>
+                </button>
+              </div>
+            </div>
+
+            <div class="action-bar">
+              <div class="sample-action">
+                <span class="action-label">लोकप्रिय रूट:</span>
+                <button type="button" class="quick-route-btn" data-from="NDLS" data-to="MMCT">NDLS ➔ MMCT</button>
+                <button type="button" class="quick-route-btn" data-from="HWH" data-to="NDLS">HWH ➔ NDLS</button>
+                <button type="button" id="demo-route" class="demo-link-btn">सैंपल रूट देखें (Demo)</button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Panel 3: Seats Availability Form (Station to Station + Optional Train Number) -->
+        <div id="panel-seats" class="tab-panel" role="tabpanel" aria-labelledby="tab-seats" hidden>
+          <form id="seats-form" class="search-form" novalidate>
+            <div class="form-multi-grid">
+              <div class="field-container autocomplete-container">
+                <label for="seats-from-input" class="field-label">प्रस्थान स्टेशन (From Station)</label>
+                <div class="input-wrapper">
+                  <input id="seats-from-input" class="station-autocomplete" type="text" placeholder="उदा. NDLS (नई दिल्ली)" style="text-transform:uppercase;" required autocomplete="off" />
+                </div>
+              </div>
+
+              <div class="field-container autocomplete-container">
+                <label for="seats-to-input" class="field-label">गंतव्य स्टेशन (To Station)</label>
+                <div class="input-wrapper">
+                  <input id="seats-to-input" class="station-autocomplete" type="text" placeholder="उदा. MMCT (मुंबई सेंट्रल)" style="text-transform:uppercase;" required autocomplete="off" />
+                </div>
+              </div>
+
+              <div class="field-container">
+                <label for="seats-date-input" class="field-label">यात्रा तिथि (Date)</label>
+                <div class="input-wrapper">
+                  <input id="seats-date-input" type="date" required />
+                </div>
+              </div>
+
+              <div class="field-container autocomplete-container">
+                <label for="seats-train-input" class="field-label">
+                  <span>ट्रेन नंबर (वैकल्पिक)</span>
+                  <span class="label-hint">Optional Filter</span>
+                </label>
+                <div class="input-wrapper">
+                  <input id="seats-train-input" class="train-autocomplete" type="text" maxlength="5" placeholder="वैकल्पिक उदा. 12952" autocomplete="off" />
+                </div>
+              </div>
+
+              <div class="field-container">
+                <label for="seats-class-select" class="field-label">क्लास (Class)</label>
+                <div class="input-wrapper select-wrapper">
+                  <select id="seats-class-select">
+                    <option value="" selected>सभी क्लास (All Classes)</option>
+                    <option value="SL">SL - Sleeper</option>
+                    <option value="3A">3A - Third AC</option>
+                    <option value="2A">2A - Second AC</option>
+                    <option value="1A">1A - First AC</option>
+                    <option value="3E">3E - AC 3 Economy</option>
+                    <option value="CC">CC - AC Chair Car</option>
+                    <option value="2S">2S - Second Sitting</option>
+                    <option value="EC">EC - Exec. Chair Car</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="field-container">
+                <label for="seats-quota-select" class="field-label">कोटा (Quota)</label>
+                <div class="input-wrapper select-wrapper">
+                  <select id="seats-quota-select">
+                    <option value="GN" selected>GN - General Quota</option>
+                    <option value="TQ">TQ - Tatkal Quota</option>
+                    <option value="LD">LD - Ladies Quota</option>
+                    <option value="SS">SS - Senior Citizen</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-bottom-row">
+              <div class="sample-action">
+                <button type="button" id="demo-seats" class="demo-link-btn">सैंपल सीट उपलब्धता (Demo)</button>
+              </div>
+              <button type="submit" id="btn-submit-seats" class="submit-button">
+                <span class="btn-text">सीट उपलब्धता देखें</span>
+                <span class="btn-loader" aria-hidden="true"></span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Panel 4: Live Train Status Form -->
         <div id="panel-train" class="tab-panel" role="tabpanel" aria-labelledby="tab-train" hidden>
           <form id="train-form" class="search-form" novalidate>
             <div class="form-grid-row">
-              <div class="field-container">
+              <div class="field-container autocomplete-container">
                 <label for="train-input" class="field-label">
-                  <span>5-अंकों का ट्रेन नंबर</span>
+                  <span>5-अंकों का ट्रेन नंबर या नाम</span>
                   <span id="train-counter" class="counter-text">0 / 5</span>
                 </label>
                 <div class="input-wrapper">
                   <span class="input-icon" aria-hidden="true">🚆</span>
                   <input 
                     id="train-input" 
+                    class="train-autocomplete"
                     type="text" 
                     autocomplete="off" 
-                    inputmode="numeric" 
-                    pattern="[0-9]{5}" 
-                    maxlength="5" 
-                    placeholder="उदा. 12952" 
+                    placeholder="उदा. 12952 या राजधानी" 
                     required 
                   />
                 </div>
-                <span class="field-subtext">ट्रेन का 5-अंकीय आधिकारिक नंबर लिखें।</span>
+                <span class="field-subtext">ट्रेन नंबर या नाम लिखते ही सुझाव दिखेंगे और रनिंग स्टेटस स्वतः लोड होगा।</span>
               </div>
 
               <div class="field-container">
@@ -228,101 +362,28 @@
           </form>
         </div>
 
-        <!-- Panel 3: Seats Availability Form -->
-        <div id="panel-seats" class="tab-panel" role="tabpanel" aria-labelledby="tab-seats" hidden>
-          <form id="seats-form" class="search-form" novalidate>
-            <div class="form-multi-grid">
-              <div class="field-container">
-                <label for="seats-train-input" class="field-label">ट्रेन नंबर (5-digit)</label>
-                <div class="input-wrapper">
-                  <input id="seats-train-input" type="text" maxlength="5" placeholder="उदा. 12952" required />
-                </div>
-              </div>
-
-              <div class="field-container">
-                <label for="seats-from-input" class="field-label">प्रस्थान स्टेशन (From Code)</label>
-                <div class="input-wrapper">
-                  <input id="seats-from-input" type="text" maxlength="5" placeholder="उदा. NDLS" style="text-transform:uppercase;" required />
-                </div>
-              </div>
-
-              <div class="field-container">
-                <label for="seats-to-input" class="field-label">गंतव्य स्टेशन (To Code)</label>
-                <div class="input-wrapper">
-                  <input id="seats-to-input" type="text" maxlength="5" placeholder="उदा. MMCT" style="text-transform:uppercase;" required />
-                </div>
-              </div>
-
-              <div class="field-container">
-                <label for="seats-date-input" class="field-label">यात्रा तिथि (Date)</label>
-                <div class="input-wrapper">
-                  <input id="seats-date-input" type="date" required />
-                </div>
-              </div>
-
-              <div class="field-container">
-                <label for="seats-class-select" class="field-label">क्लास (Class)</label>
-                <div class="input-wrapper select-wrapper">
-                  <select id="seats-class-select">
-                    <option value="3A" selected>3A - Third AC</option>
-                    <option value="2A">2A - Second AC</option>
-                    <option value="1A">1A - First AC</option>
-                    <option value="3E">3E - AC 3 Economy</option>
-                    <option value="SL">SL - Sleeper</option>
-                    <option value="2S">2S - Second Sitting</option>
-                    <option value="CC">CC - AC Chair Car</option>
-                    <option value="EC">EC - Exec. Chair Car</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="field-container">
-                <label for="seats-quota-select" class="field-label">कोटा (Quota)</label>
-                <div class="input-wrapper select-wrapper">
-                  <select id="seats-quota-select">
-                    <option value="GN" selected>GN - General Quota</option>
-                    <option value="TQ">TQ - Tatkal Quota</option>
-                    <option value="LD">LD - Ladies Quota</option>
-                    <option value="SS">SS - Senior Citizen</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div class="form-bottom-row">
-              <div class="sample-action">
-                <button type="button" id="demo-seats" class="demo-link-btn">सैंपल सीट उपलब्धता (Demo)</button>
-              </div>
-              <button type="submit" id="btn-submit-seats" class="submit-button">
-                <span class="btn-text">सीट उपलब्धता देखें</span>
-                <span class="btn-loader" aria-hidden="true"></span>
-              </button>
-            </div>
-          </form>
-        </div>
-
-        <!-- Panel 4: Fare Enquiry Form -->
+        <!-- Panel 5: Fare Enquiry Form -->
         <div id="panel-fare" class="tab-panel" role="tabpanel" aria-labelledby="tab-fare" hidden>
           <form id="fare-form" class="search-form" novalidate>
             <div class="form-multi-grid">
-              <div class="field-container">
-                <label for="fare-train-input" class="field-label">ट्रेन नंबर (5-digit)</label>
+              <div class="field-container autocomplete-container">
+                <label for="fare-train-input" class="field-label">ट्रेन नंबर या नाम</label>
                 <div class="input-wrapper">
-                  <input id="fare-train-input" type="text" maxlength="5" placeholder="उदा. 12952" required />
+                  <input id="fare-train-input" class="train-autocomplete" type="text" placeholder="उदा. 12952" required autocomplete="off" />
                 </div>
               </div>
 
-              <div class="field-container">
-                <label for="fare-from-input" class="field-label">प्रस्थान स्टेशन (From Code)</label>
+              <div class="field-container autocomplete-container">
+                <label for="fare-from-input" class="field-label">प्रस्थान स्टेशन (From)</label>
                 <div class="input-wrapper">
-                  <input id="fare-from-input" type="text" maxlength="5" placeholder="उदा. NDLS" style="text-transform:uppercase;" required />
+                  <input id="fare-from-input" class="station-autocomplete" type="text" placeholder="उदा. NDLS (नई दिल्ली)" style="text-transform:uppercase;" required autocomplete="off" />
                 </div>
               </div>
 
-              <div class="field-container">
-                <label for="fare-to-input" class="field-label">गंतव्य स्टेशन (To Code)</label>
+              <div class="field-container autocomplete-container">
+                <label for="fare-to-input" class="field-label">गंतव्य स्टेशन (To)</label>
                 <div class="input-wrapper">
-                  <input id="fare-to-input" type="text" maxlength="5" placeholder="उदा. MMCT" style="text-transform:uppercase;" required />
+                  <input id="fare-to-input" class="station-autocomplete" type="text" placeholder="उदा. MMCT (मुंबई सेंट्रल)" style="text-transform:uppercase;" required autocomplete="off" />
                 </div>
               </div>
 
@@ -370,53 +431,6 @@
                 <span class="btn-text">किराया चेक करें</span>
                 <span class="btn-loader" aria-hidden="true"></span>
               </button>
-            </div>
-          </form>
-        </div>
-
-        <!-- Panel 5: Route & Trains Between Stations Form -->
-        <div id="panel-route" class="tab-panel" role="tabpanel" aria-labelledby="tab-route" hidden>
-          <form id="route-form" class="search-form" novalidate>
-            <div class="form-grid-row">
-              <div class="field-container">
-                <label for="route-from-input" class="field-label">प्रस्थान स्टेशन (From Station Code)</label>
-                <div class="input-wrapper">
-                  <input id="route-from-input" type="text" maxlength="5" placeholder="उदा. NDLS (नई दिल्ली)" style="text-transform:uppercase;" required />
-                </div>
-                <span class="field-subtext">स्टेशन कोड डालें (उदा. NDLS, HWH, BCT)।</span>
-              </div>
-
-              <div class="field-container">
-                <label for="route-to-input" class="field-label">गंतव्य स्टेशन (To Station Code)</label>
-                <div class="input-wrapper">
-                  <input id="route-to-input" type="text" maxlength="5" placeholder="उदा. MMCT (मुंबई सेंट्रल)" style="text-transform:uppercase;" required />
-                </div>
-                <span class="field-subtext">गंतव्य स्टेशन कोड लिखें।</span>
-              </div>
-
-              <div class="field-container">
-                <label for="route-date-input" class="field-label">यात्रा तिथि (वैकल्पिक)</label>
-                <div class="input-wrapper">
-                  <input id="route-date-input" type="date" />
-                </div>
-                <span class="field-subtext">तिथि चुनें (वैकल्पिक)।</span>
-              </div>
-
-              <div class="submit-container">
-                <button type="submit" id="btn-submit-route" class="submit-button">
-                  <span class="btn-text">ट्रेनें खोजें</span>
-                  <span class="btn-loader" aria-hidden="true"></span>
-                </button>
-              </div>
-            </div>
-
-            <div class="action-bar">
-              <div class="sample-action">
-                <span class="action-label">लोकप्रिय रूट:</span>
-                <button type="button" class="quick-route-btn" data-from="NDLS" data-to="MMCT">NDLS ➔ MMCT</button>
-                <button type="button" class="quick-route-btn" data-from="HWH" data-to="NDLS">HWH ➔ NDLS</button>
-                <button type="button" id="demo-route" class="demo-link-btn">सैंपल रूट देखें (Demo)</button>
-              </div>
             </div>
           </form>
         </div>
@@ -538,7 +552,7 @@
     </div>
   </footer>
 
-  <script src="config.js?v=6.0"></script>
-  <script src="app.js?v=6.0"></script>
+  <script src="config.js?v=10.0"></script>
+  <script src="app.js?v=10.0"></script>
 </body>
 </html>
