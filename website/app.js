@@ -97,6 +97,63 @@
   // Default to PNR Tab on page load
   switchTab('pnr');
 
+  // Reset all forms and state back to fresh default
+  function resetAllForms() {
+    // 1. Reset all form elements
+    ['pnr-form', 'route-form', 'seats-form', 'train-form', 'fare-form'].forEach(id => {
+      const f = $(id);
+      if (f) f.reset();
+    });
+
+    // 2. Reset dates to today
+    ['journey-date', 'seats-date-input', 'fare-date-input', 'route-date-input'].forEach(id => {
+      const el = $(id);
+      if (el) el.value = todayIso;
+    });
+
+    // 3. Reset input counters
+    if (pnrCounter) pnrCounter.textContent = '0 / 10 अंक';
+    if (trainCounter) trainCounter.textContent = '0 / 5';
+
+    // 4. Clear dataset codes and values on autocomplete inputs
+    document.querySelectorAll('.station-autocomplete').forEach(el => {
+      el.dataset.code = '';
+      el.value = '';
+    });
+    document.querySelectorAll('.train-autocomplete').forEach(el => {
+      el.value = '';
+    });
+
+    // 5. Close any open dropdowns
+    document.querySelectorAll('.autocomplete-dropdown').forEach(dd => dd.classList.remove('open'));
+
+    // 6. Hide feedback alert and result card
+    hideFeedback();
+    const res = $('result');
+    if (res) {
+      res.hidden = true;
+      res.innerHTML = '';
+    }
+
+    // 7. Switch to default tab: PNR
+    switchTab('pnr');
+
+    // 8. Scroll smoothly to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // 9. Show a brief clean confirmation toast
+    notify('✓ सभी फ़ॉर्म रीसेट हो गए हैं (All Forms Refreshed)', false);
+    setTimeout(() => {
+      hideFeedback();
+    }, 2200);
+  }
+
+  // Clicking RailPlus logo/brand refreshes/resets the form
+  $('brand-logo-btn')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    resetAllForms();
+  });
+
   // Input Formatting & Counter
   const pnrInput = $('pnr-input');
   const pnrCounter = $('pnr-counter');

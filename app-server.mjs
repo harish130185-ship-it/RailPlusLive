@@ -16,6 +16,7 @@ const STATIC_FILES = new Map([
   ['/icon.svg', ['icon.svg', 'image/svg+xml']],
   ['/icon-192.png', ['icon-192.png', 'image/png']],
   ['/icon-512.png', ['icon-512.png', 'image/png']],
+  ['/logo.png', ['logo.png', 'image/png']],
   ['/manifest.webmanifest', ['manifest.webmanifest', 'application/manifest+json']]
 ]);
 

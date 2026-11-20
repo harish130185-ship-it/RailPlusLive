@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#13335a" />
   <meta name="description" content="RailPlus — भारतीय रेल PNR, लाइव ट्रेन रनिंग, सीट उपलब्धता, किराया व रूट पूछताछ सेवा।" />
-  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="icon" href="logo.png" type="image/png" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="stylesheet" href="styles.css?v=10.0" />
+  <link rel="stylesheet" href="styles.css?v=11.0" />
   <title>RailPlus — PNR, लाइव ट्रेन, सीट, किराया व रूट पूछताछ</title>
   <script>
     if ('serviceWorker' in navigator) {
@@ -27,16 +27,9 @@
   <header class="app-header">
     <div class="header-container">
       <div class="header-brand">
-        <a href="#home" class="logo-link">
+        <a href="#home" class="logo-link" id="brand-logo-btn" title="RailPlus — होम एवं फ़ॉर्म रीसेट करें">
           <div class="logo-symbol">
-            <!-- Authentic Railway Train Icon -->
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="4" y="3" width="16" height="15" rx="3"></rect>
-              <line x1="4" y1="11" x2="20" y2="11"></line>
-              <circle cx="8.5" cy="15.5" r="1.5" fill="currentColor"></circle>
-              <circle cx="15.5" cy="15.5" r="1.5" fill="currentColor"></circle>
-              <path d="M8 21l2-3m4 0 2 3"></path>
-            </svg>
+            <img src="logo.png" alt="RailPlus Logo" class="brand-logo-img" />
           </div>
           <div class="brand-details">
             <span class="brand-title">Rail<strong>Plus</strong></span>
@@ -524,7 +517,12 @@
     <div class="footer-container">
       <div class="footer-col">
         <div class="footer-brand">
-          <span class="footer-logo">Rail<strong>Plus</strong></span>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+            <div class="logo-symbol" style="width:36px;height:36px;background:#ffffff;border-radius:6px;padding:2px;">
+              <img src="logo.png" alt="RailPlus" class="brand-logo-img" />
+            </div>
+            <span class="footer-logo">Rail<strong>Plus</strong></span>
+          </div>
           <p>भारतीय रेल यात्रियों के लिए सरल व सुरक्षित PNR, लाइव रनिंग, सीट, किराया व रूट वेब पोर्टल।</p>
         </div>
       </div>
@@ -552,7 +550,7 @@
     </div>
   </footer>
 
-  <script src="config.js?v=10.0"></script>
-  <script src="app.js?v=10.0"></script>
+  <script src="config.js?v=11.0"></script>
+  <script src="app.js?v=11.0"></script>
 </body>
 </html>
