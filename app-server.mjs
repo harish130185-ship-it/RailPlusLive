@@ -224,7 +224,7 @@ export function createHandler({ apiKey = process.env.RAILKIT_API_KEY, apiUrl = p
       if (!staticDef || req.method !== 'GET') return error(res, 404, 'Page not found');
       const [file, mime] = staticDef;
       const bytes = await readFile(path.join(SITE, file));
-      res.writeHead(200, { 'Content-Type': mime, 'Cache-Control': file === 'config.js' || file === 'sw.js' || file === 'index.html' ? 'no-cache' : 'public, max-age=1800' });
+      res.writeHead(200, { 'Content-Type': mime, 'Cache-Control': 'no-cache, no-store, must-revalidate' });
       res.end(bytes);
     } catch (e) {
       const status = [400, 404, 413, 429, 503].includes(e.status) ? e.status : 502;
@@ -235,3 +235,14 @@ export function createHandler({ apiKey = process.env.RAILKIT_API_KEY, apiUrl = p
 }
 export function createApp(options) { return http.createServer(createHandler(options)); }
 export default createApp;
+
+// --- Start server when run directly (not imported as a module) ---
+const isMain = !process.argv[1] || fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+if (isMain) {
+  const PORT = Number(process.env.PORT) || 3000;
+  const app = createApp();
+  app.listen(PORT, () => {
+    console.log(`🚂 RailPlus server running at http://localhost:${PORT}`);
+    console.log(`   Health check: http://localhost:${PORT}/api/health`);
+  });
+}

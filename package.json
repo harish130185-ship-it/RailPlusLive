@@ -1,9 +1,9 @@
 {
-  "name": "railpulse-live",
+  "name": "railplus-live",
   "version": "1.0.0",
   "type": "module",
   "private": true,
-  "description": "RailPulse website and Android WebView app with a secure railway API backend",
+  "description": "RailPlus website and Android WebView app with a secure railway API backend",
   "scripts": {
     "start": "node app-server.mjs",
     "dev": "node --watch app-server.mjs",

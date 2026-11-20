@@ -1,4 +1,4 @@
-# RailPulse — Website + Android App (Live API Ready)
+# RailPlus — Website + Android App (Live API Ready)
 
 यह आपकी दो फीचर वाली **वर्किंग वेबसाइट + Android Studio source project** है।
 
@@ -58,7 +58,7 @@ RailKit एक **independent third-party** रेलवे API है, Indian Ra
 
 1. पहले ऊपर वाली वेबसाइट HTTPS domain पर deploy करें।
 2. `android/app/src/main/res/values/strings.xml` में placeholder
-   `https://YOUR-RAILPULSE-DOMAIN.example` को अपने live website URL से बदलें।
+   `https://YOUR-RailPlus-DOMAIN.example` को अपने live website URL से बदलें।
 3. Android Studio में **Open** → इस project का `android` folder चुनें।
 4. Gradle sync पूरा करें (JDK 17, SDK 35 और Android Gradle Plugin 8.9.2 के लिए connectivity चाहिए)। अगर IDE को Gradle wrapper की कमी दिखे, Gradle 8.11.1 install कर के `android` folder में `gradle wrapper --gradle-version 8.11.1` चलाएँ, फिर Project reload करें। इस source package में compiled Gradle wrapper/JAR शामिल नहीं है।
 5. **Build → Build Bundle(s) / APK(s) → Build APK(s)** चुनें। Debug APK आमतौर पर `android/app/build/outputs/apk/debug/app-debug.apk` में होगा।
