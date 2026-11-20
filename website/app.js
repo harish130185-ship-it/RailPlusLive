@@ -83,6 +83,10 @@
       tabEl.setAttribute('aria-selected', String(isActive));
       panelEl.hidden = !isActive;
       panelEl.classList.toggle('active', isActive);
+
+      if (isActive && typeof tabEl.scrollIntoView === 'function') {
+        tabEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
     });
 
     hideFeedback();
@@ -153,6 +157,25 @@
     e.preventDefault();
     resetAllForms();
   });
+
+  // Station Swap functionality (Swap Origin and Destination)
+  function attachSwap(btnId, fromId, toId) {
+    $(btnId)?.addEventListener('click', () => {
+      const fromEl = $(fromId);
+      const toEl = $(toId);
+      if (!fromEl || !toEl) return;
+      const tempVal = fromEl.value;
+      const tempCode = fromEl.dataset.code;
+      fromEl.value = toEl.value;
+      fromEl.dataset.code = toEl.dataset.code || '';
+      toEl.value = tempVal;
+      toEl.dataset.code = tempCode || '';
+    });
+  }
+
+  attachSwap('swap-route-stations', 'route-from-input', 'route-to-input');
+  attachSwap('swap-seats-stations', 'seats-from-input', 'seats-to-input');
+  attachSwap('swap-fare-stations', 'fare-from-input', 'fare-to-input');
 
   // Input Formatting & Counter
   const pnrInput = $('pnr-input');
