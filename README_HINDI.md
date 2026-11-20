@@ -4,6 +4,9 @@
 
 - PNR check: 10 अंकों का PNR → Booking Status, Current Status, Chart Status, Train Details
 - Live Train Running Status: ट्रेन नंबर + शुरुआती तारीख → last reported status, स्टेशन टाइमलाइन, delay, progress
+- Route search: स्टेशन नाम autocomplete या code → direct trains और timings; हर ट्रेन में Sleeper/3AC/2AC आदि class के अनुसार inline seat enquiry
+- Seat availability: train, station codes, date, class और quota के अनुसार उपलब्धता व fare summary
+- Fare enquiry: train, station codes, date, class और quota के अनुसार fare breakdown
 - Mobile-friendly PWA: वेबसाइट को Android Chrome में Install कर सकते हैं
 - Android Studio native wrapper: HTTPS वेबसाइट को WebView में खोलता है
 - Secure Node.js backend: API Key सिर्फ server environment में, PNR history/database में save नहीं होती
@@ -15,6 +18,8 @@ RailKit एक **independent third-party** रेलवे API है, Indian Ra
 
 - `GET https://api.railkit.in/api/v1/pnr/:pnr` — Header `x-api-key`
 - `GET https://api.railkit.in/api/v1/trains/:trainNumber/live/:date` — Date `DD-MM-YYYY`, ट्रेन की origin start date (IST, आज से पिछले पाँच दिन)
+
+Station name suggestions, route, seat availability और fare lookup के लिए server पर RailKit `stationsByName`, `searchTrainBetweenStations`, `getAvailability` और `fareLookup` SDK methods इस्तेमाल होते हैं। Route search में स्टेशन नाम टाइप करके suggestion चुनें; सीट उपलब्धता उसी चुने हुए from/to segment, तारीख और class के लिए खुलती है। यदि कोई listed train उन stations पर नहीं रुकती, तो उसके वास्तविक stops की सूची से valid segment चुन सकते हैं।
 
 संदर्भ: https://railkit.in/guides/pnr-status-api और https://railkit.in/guides/live-train-tracking-api
 
@@ -39,7 +44,7 @@ RailKit एक **independent third-party** रेलवे API है, Indian Ra
    ```
 
 5. Browser में `http://localhost:3000` खोलें। Website और `/api/health` दोनों इसी Node server से चलते हैं।
-6. अपने सही PNR या live train को check करें। API key या provider error होने पर साफ error दिखाई देगा; fabricated live data नहीं।
+6. अपने PNR, live train, route, seat availability या fare को check करें। API key या provider error होने पर साफ error दिखाई देगा; fabricated live data नहीं।
 
 > अगर key अभी नहीं है, `node app-server.mjs` चलाएँ: UI/demo काम करेगा, live status पर स्पष्ट API key required message मिलेगा।
 

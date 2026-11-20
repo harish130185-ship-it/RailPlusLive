@@ -2,368 +2,543 @@
 <html lang="hi">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-  <meta name="theme-color" content="#0b132b" />
-  <meta name="description" content="RailPlus — Next-Gen Indian Railways PNR Status & Live Train Tracking. Fast, secure, and beautiful travel companion." />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#13335a" />
+  <meta name="description" content="RailPlus — भारतीय रेल PNR, लाइव ट्रेन रनिंग, सीट उपलब्धता, किराया व रूट पूछताछ सेवा।" />
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=4.0" />
-  <title>RailPlus — PNR Status & Live Train Tracking</title>
+  <link rel="stylesheet" href="styles.css?v=6.0" />
+  <title>RailPlus — PNR, लाइव ट्रेन, सीट, किराया व रूट पूछताछ</title>
 </head>
 <body>
-  <div class="app-background">
-    <div class="aurora-glow aurora-1"></div>
-    <div class="aurora-glow aurora-2"></div>
-    <div class="grid-overlay"></div>
-  </div>
-
-  <div class="page-shell">
-    <!-- Top Modern Navigation -->
-    <header class="site-header">
-      <div class="header-inner">
-        <a href="#home" class="brand" aria-label="RailPlus Home">
-          <div class="brand-logo">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Header / Navigation -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="header-brand">
+        <a href="#home" class="logo-link">
+          <div class="logo-symbol">
+            <!-- Authentic Railway Train Icon -->
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="4" y="3" width="16" height="15" rx="3"></rect>
               <line x1="4" y1="11" x2="20" y2="11"></line>
               <circle cx="8.5" cy="15.5" r="1.5" fill="currentColor"></circle>
               <circle cx="15.5" cy="15.5" r="1.5" fill="currentColor"></circle>
-              <path d="M7 21l2-3m6 0 2 3"></path>
+              <path d="M8 21l2-3m4 0 2 3"></path>
             </svg>
           </div>
-          <div class="brand-text">
-            <span class="brand-name">Rail<span class="brand-accent">Plus</span></span>
-            <span class="brand-tag">PRO TRAVEL SUITE</span>
+          <div class="brand-details">
+            <span class="brand-title">Rail<strong>Plus</strong></span>
+            <span class="brand-subtitle">रेलवे सूचना सेवा (Railway Enquiry Portal)</span>
           </div>
         </a>
+      </div>
 
-        <div class="header-actions">
-          <div class="status-badge" id="api-indicator">
-            <span class="pulse-indicator"></span>
-            <span class="status-label">Verifying API…</span>
-          </div>
-          <a href="https://enquiry.indianrail.gov.in/ntes/" target="_blank" rel="noopener noreferrer" class="ntes-link" title="Official NTES Website">
-            <span>NTES Official</span>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-              <polyline points="15 3 21 3 21 9"></polyline>
-              <line x1="10" y1="14" x2="21" y2="3"></line>
-            </svg>
+      <div class="header-right">
+        <div class="system-status" id="api-indicator">
+          <span class="status-dot"></span>
+          <span class="status-text">सर्वर ऑनलाइन</span>
+        </div>
+        <div class="official-links">
+          <a href="https://indianrail.gov.in/enquiry/PNR/PnrEnquiry.html?locale=en" target="_blank" rel="noopener noreferrer" class="link-item">
+            Official PNR ↗
+          </a>
+          <a href="https://enquiry.indianrail.gov.in/ntes/" target="_blank" rel="noopener noreferrer" class="link-item">
+            NTES Live ↗
           </a>
         </div>
       </div>
-    </header>
+    </div>
+  </header>
 
-    <main id="home">
-      <!-- Modern Hero Section -->
-      <section class="hero-section">
-        <div class="hero-badge">
-          <span class="badge-icon">⚡</span>
-          <span>Fastest Indian Railways Live Enquiry</span>
-        </div>
-        <h1 class="hero-title">
-          सफ़र की सही स्थिति, <br class="mobile-break" />
-          <span class="text-gradient">सुपरफास्ट & लाइव।</span>
-        </h1>
-        <p class="hero-subtitle">
-          10-अंकीय PNR की पुष्टि करें या अपनी ट्रेन की रीयल-टाइम GPS लोकेशन, देरी और स्टेशन टाइमलाइन ट्रैक करें।
-        </p>
+  <!-- Main Content Layout -->
+  <main class="main-content" id="home">
+    <div class="content-container">
 
-        <!-- Main Search Card / App Widget -->
-        <div class="search-widget-container">
-          <div class="search-widget">
-            <!-- Nav Segmented Tabs -->
-            <div class="widget-tabs" role="tablist">
-              <button id="tab-pnr" class="widget-tab active" role="tab" aria-selected="true" aria-controls="panel-pnr" type="button">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-                  <rect x="3" y="4" width="18" height="16" rx="2"></rect>
-                  <line x1="7" y1="8" x2="17" y2="8"></line>
-                  <line x1="7" y1="12" x2="17" y2="12"></line>
-                  <line x1="7" y1="16" x2="13" y2="16"></line>
-                </svg>
-                <span>PNR स्टेटस (PNR Check)</span>
-              </button>
-              <button id="tab-train" class="widget-tab" role="tab" aria-selected="false" aria-controls="panel-train" type="button">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                  <circle cx="12" cy="12" r="9"></circle>
-                </svg>
-                <span>लाइव ट्रेन रनिंग (Live Train)</span>
-              </button>
-            </div>
+      <!-- Page Intro Header -->
+      <section class="page-intro">
+        <h1>भारतीय रेल पूछताछ केंद्र</h1>
+        <p>PNR स्टेटस, लाइव ट्रेन ट्रैकिंग, सीट उपलब्धता, यात्रा किराया व ट्रेनों के रूट की सही जानकारी।</p>
+      </section>
 
-            <!-- Panel 1: PNR Status -->
-            <div id="panel-pnr" class="tab-panel" role="tabpanel" aria-labelledby="tab-pnr">
-              <form id="pnr-form" class="enquiry-form" novalidate>
-                <div class="form-row">
-                  <div class="input-field-group">
-                    <label for="pnr-input" class="input-label">
-                      <span>10-DIGIT PNR NUMBER</span>
-                      <span id="pnr-counter" class="char-counter">0/10</span>
-                    </label>
-                    <div class="input-box">
-                      <div class="input-icon">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <rect x="2" y="7" width="20" height="14" rx="2"></rect>
-                          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                        </svg>
-                      </div>
-                      <input 
-                        id="pnr-input" 
-                        type="text" 
-                        autocomplete="off" 
-                        inputmode="numeric" 
-                        pattern="[0-9]{10}" 
-                        maxlength="10" 
-                        placeholder="जैसे 2451893620" 
-                        required 
-                      />
-                      <button type="button" id="paste-pnr" class="input-action-btn" title="Paste from clipboard">
-                        Paste
-                      </button>
-                    </div>
-                  </div>
-
-                  <button type="submit" id="btn-submit-pnr" class="btn-execute">
-                    <span class="btn-content">
-                      <span class="btn-text">Check PNR Status</span>
-                      <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                        <polyline points="12 5 19 12 12 19"></polyline>
-                      </svg>
-                    </span>
-                    <span class="btn-spinner" aria-hidden="true"></span>
-                  </button>
-                </div>
-
-                <!-- Quick Assistance Chips -->
-                <div class="chips-row">
-                  <span class="chips-label">Quick Action:</span>
-                  <button type="button" id="demo-pnr" class="chip-btn">
-                    <span>✨ Test Sample PNR</span>
-                  </button>
-                  <a href="https://indianrail.gov.in/enquiry/PNR/PnrEnquiry.html?locale=en" target="_blank" rel="noopener noreferrer" class="chip-link">
-                    Official IRCTC Portal ↗
-                  </a>
-                </div>
-              </form>
-            </div>
-
-            <!-- Panel 2: Live Train Status -->
-            <div id="panel-train" class="tab-panel" role="tabpanel" aria-labelledby="tab-train" hidden>
-              <form id="train-form" class="enquiry-form" novalidate>
-                <div class="form-grid">
-                  <div class="input-field-group">
-                    <label for="train-input" class="input-label">
-                      <span>5-DIGIT TRAIN NUMBER</span>
-                      <span id="train-counter" class="char-counter">0/5</span>
-                    </label>
-                    <div class="input-box">
-                      <div class="input-icon">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <path d="M12 2a8 8 0 0 0-8 8v12h16V10a8 8 0 0 0-8-8z"></path>
-                        </svg>
-                      </div>
-                      <input 
-                        id="train-input" 
-                        type="text" 
-                        autocomplete="off" 
-                        inputmode="numeric" 
-                        pattern="[0-9]{5}" 
-                        maxlength="5" 
-                        placeholder="जैसे 12952, 12004" 
-                        required 
-                      />
-                    </div>
-                  </div>
-
-                  <div class="input-field-group">
-                    <label for="journey-date" class="input-label">
-                      <span>JOURNEY START DATE</span>
-                      <span class="label-hint">Origin Date (IST)</span>
-                    </label>
-                    <div class="input-box">
-                      <div class="input-icon">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                          <line x1="16" y1="2" x2="16" y2="6"></line>
-                          <line x1="8" y1="2" x2="8" y2="6"></line>
-                          <line x1="3" y1="10" x2="21" y2="10"></line>
-                        </svg>
-                      </div>
-                      <input id="journey-date" type="date" required />
-                    </div>
-                  </div>
-
-                  <button type="submit" id="btn-submit-train" class="btn-execute">
-                    <span class="btn-content">
-                      <span class="btn-text">Live Running Status</span>
-                      <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                        <polyline points="12 5 19 12 12 19"></polyline>
-                      </svg>
-                    </span>
-                    <span class="btn-spinner" aria-hidden="true"></span>
-                  </button>
-                </div>
-
-                <!-- Train Quick Chips -->
-                <div class="chips-row">
-                  <span class="chips-label">Popular Trains:</span>
-                  <button type="button" class="train-chip" data-train="12952">12952 (Rajdhani)</button>
-                  <button type="button" class="train-chip" data-train="12004">12004 (Shatabdi)</button>
-                  <button type="button" class="train-chip" data-train="22436">22436 (Vande Bharat)</button>
-                  <button type="button" id="demo-train" class="chip-btn">
-                    <span>✨ Test Demo Run</span>
-                  </button>
-                </div>
-              </form>
-            </div>
-
-            <!-- Feedback / Error Banner -->
-            <div id="feedback" class="feedback-banner" role="status" aria-live="polite" hidden></div>
-          </div>
-        </div>
-
-        <!-- Recent Searches Bar (Auto-populated by JS) -->
-        <div id="recent-container" class="recent-bar" hidden>
-          <span class="recent-title">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
+      <!-- Central Search Box / Enquiry Card -->
+      <section class="enquiry-card">
+        <!-- 5 Classic Tab Navigation -->
+        <div class="enquiry-tabs" role="tablist">
+          <button id="tab-pnr" class="tab-button active" role="tab" aria-selected="true" aria-controls="panel-pnr" type="button">
+            <!-- Ticket Icon -->
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+              <line x1="7" y1="15" x2="11" y2="15"></line>
             </svg>
-            Recent:
-          </span>
-          <div id="recent-items" class="recent-items"></div>
-          <button type="button" id="clear-recent" class="recent-clear" title="Clear History">Clear</button>
+            <span>PNR स्थिति</span>
+          </button>
+
+          <button id="tab-train" class="tab-button" role="tab" aria-selected="false" aria-controls="panel-train" type="button">
+            <!-- Live Train Icon -->
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="4" y="3" width="16" height="14" rx="3"></rect>
+              <circle cx="8" cy="13" r="1.5" fill="currentColor"></circle>
+              <circle cx="16" cy="13" r="1.5" fill="currentColor"></circle>
+              <path d="M8 21l2-4m4 0 2 4"></path>
+            </svg>
+            <span>लाइव ट्रेन (Live)</span>
+          </button>
+
+          <button id="tab-seats" class="tab-button" role="tab" aria-selected="false" aria-controls="panel-seats" type="button">
+            <!-- Seat Icon -->
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M7 13h10a4 4 0 0 0 4-4V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v3a4 4 0 0 0 4 4z"></path>
+              <path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"></path>
+            </svg>
+            <span>सीट उपलब्धता (Seats)</span>
+          </button>
+
+          <button id="tab-fare" class="tab-button" role="tab" aria-selected="false" aria-controls="panel-fare" type="button">
+            <!-- Fare / Currency Icon -->
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="1" x2="12" y2="23"></line>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            <span>किराया सूची (Fare)</span>
+          </button>
+
+          <button id="tab-route" class="tab-button" role="tab" aria-selected="false" aria-controls="panel-route" type="button">
+            <!-- Map Route Icon -->
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+              <line x1="8" y1="2" x2="8" y2="18"></line>
+              <line x1="16" y1="6" x2="16" y2="22"></line>
+            </svg>
+            <span>ट्रेन खोजें (Route)</span>
+          </button>
+        </div>
+
+        <!-- Panel 1: PNR Enquiry Form -->
+        <div id="panel-pnr" class="tab-panel active" role="tabpanel" aria-labelledby="tab-pnr">
+          <form id="pnr-form" class="search-form" novalidate>
+            <div class="form-group-row">
+              <div class="field-container">
+                <label for="pnr-input" class="field-label">
+                  <span>10-अंकों का PNR नंबर दर्ज करें</span>
+                  <span id="pnr-counter" class="counter-text">0 / 10 अंक</span>
+                </label>
+                <div class="input-wrapper">
+                  <span class="input-icon" aria-hidden="true">#</span>
+                  <input 
+                    id="pnr-input" 
+                    type="text" 
+                    autocomplete="off" 
+                    inputmode="numeric" 
+                    pattern="[0-9]{10}" 
+                    maxlength="10" 
+                    placeholder="उदा. 2451893620" 
+                    required 
+                  />
+                  <button type="button" id="paste-pnr" class="paste-action" title="Clipboard से पेस्ट करें">
+                    Paste
+                  </button>
+                </div>
+                <span class="field-subtext">PNR नंबर आपके टिकट या IRCTC SMS में 10 अंकों का होता है।</span>
+              </div>
+
+              <div class="submit-container">
+                <button type="submit" id="btn-submit-pnr" class="submit-button">
+                  <span class="btn-text">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    स्टेटस चेक करें
+                  </span>
+                  <span class="btn-loader" aria-hidden="true"></span>
+                </button>
+              </div>
+            </div>
+
+            <div class="action-bar">
+              <div class="sample-action">
+                <span class="action-label">परीक्षण के लिए:</span>
+                <button type="button" id="demo-pnr" class="demo-link-btn">सैंपल PNR देखें (Demo PNR)</button>
+              </div>
+              <div class="security-indicator">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <span>सुरक्षित HTTPS कनेक्शन</span>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Panel 2: Live Train Status Form -->
+        <div id="panel-train" class="tab-panel" role="tabpanel" aria-labelledby="tab-train" hidden>
+          <form id="train-form" class="search-form" novalidate>
+            <div class="form-grid-row">
+              <div class="field-container">
+                <label for="train-input" class="field-label">
+                  <span>5-अंकों का ट्रेन नंबर</span>
+                  <span id="train-counter" class="counter-text">0 / 5</span>
+                </label>
+                <div class="input-wrapper">
+                  <span class="input-icon" aria-hidden="true">🚆</span>
+                  <input 
+                    id="train-input" 
+                    type="text" 
+                    autocomplete="off" 
+                    inputmode="numeric" 
+                    pattern="[0-9]{5}" 
+                    maxlength="5" 
+                    placeholder="उदा. 12952" 
+                    required 
+                  />
+                </div>
+                <span class="field-subtext">ट्रेन का 5-अंकीय आधिकारिक नंबर लिखें।</span>
+              </div>
+
+              <div class="field-container">
+                <label for="journey-date" class="field-label">
+                  <span>प्रारंभ तिथि (Start Date)</span>
+                  <span class="label-hint">शुरुआती स्टेशन से प्रस्थान</span>
+                </label>
+                <div class="input-wrapper">
+                  <input id="journey-date" type="date" required />
+                </div>
+                <span class="field-subtext">ट्रेन चलने की तिथि (आज या पिछले 5 दिन)।</span>
+              </div>
+
+              <div class="submit-container">
+                <button type="submit" id="btn-submit-train" class="submit-button">
+                  <span class="btn-text">लाइव रनिंग देखें</span>
+                  <span class="btn-loader" aria-hidden="true"></span>
+                </button>
+              </div>
+            </div>
+
+            <div class="action-bar">
+              <div class="sample-action">
+                <span class="action-label">मुख्य ट्रेनें:</span>
+                <button type="button" class="quick-train-btn" data-train="12952">12952 राजधानी</button>
+                <button type="button" class="quick-train-btn" data-train="12004">12004 शताब्दी</button>
+                <button type="button" class="quick-train-btn" data-train="22436">22436 वन्दे भारत</button>
+                <button type="button" id="demo-train" class="demo-link-btn">सैंपल रनिंग देखें (Demo)</button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Panel 3: Seats Availability Form -->
+        <div id="panel-seats" class="tab-panel" role="tabpanel" aria-labelledby="tab-seats" hidden>
+          <form id="seats-form" class="search-form" novalidate>
+            <div class="form-multi-grid">
+              <div class="field-container">
+                <label for="seats-train-input" class="field-label">ट्रेन नंबर (5-digit)</label>
+                <div class="input-wrapper">
+                  <input id="seats-train-input" type="text" maxlength="5" placeholder="उदा. 12952" required />
+                </div>
+              </div>
+
+              <div class="field-container">
+                <label for="seats-from-input" class="field-label">प्रस्थान स्टेशन (From Code)</label>
+                <div class="input-wrapper">
+                  <input id="seats-from-input" type="text" maxlength="5" placeholder="उदा. NDLS" style="text-transform:uppercase;" required />
+                </div>
+              </div>
+
+              <div class="field-container">
+                <label for="seats-to-input" class="field-label">गंतव्य स्टेशन (To Code)</label>
+                <div class="input-wrapper">
+                  <input id="seats-to-input" type="text" maxlength="5" placeholder="उदा. MMCT" style="text-transform:uppercase;" required />
+                </div>
+              </div>
+
+              <div class="field-container">
+                <label for="seats-date-input" class="field-label">यात्रा तिथि (Date)</label>
+                <div class="input-wrapper">
+                  <input id="seats-date-input" type="date" required />
+                </div>
+              </div>
+
+              <div class="field-container">
+                <label for="seats-class-select" class="field-label">क्लास (Class)</label>
+                <div class="input-wrapper select-wrapper">
+                  <select id="seats-class-select">
+                    <option value="3A" selected>3A - Third AC</option>
+                    <option value="2A">2A - Second AC</option>
+                    <option value="1A">1A - First AC</option>
+                    <option value="3E">3E - AC 3 Economy</option>
+                    <option value="SL">SL - Sleeper</option>
+                    <option value="2S">2S - Second Sitting</option>
+                    <option value="CC">CC - AC Chair Car</option>
+                    <option value="EC">EC - Exec. Chair Car</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="field-container">
+                <label for="seats-quota-select" class="field-label">कोटा (Quota)</label>
+                <div class="input-wrapper select-wrapper">
+                  <select id="seats-quota-select">
+                    <option value="GN" selected>GN - General Quota</option>
+                    <option value="TQ">TQ - Tatkal Quota</option>
+                    <option value="LD">LD - Ladies Quota</option>
+                    <option value="SS">SS - Senior Citizen</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-bottom-row">
+              <div class="sample-action">
+                <button type="button" id="demo-seats" class="demo-link-btn">सैंपल सीट उपलब्धता (Demo)</button>
+              </div>
+              <button type="submit" id="btn-submit-seats" class="submit-button">
+                <span class="btn-text">सीट उपलब्धता देखें</span>
+                <span class="btn-loader" aria-hidden="true"></span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Panel 4: Fare Enquiry Form -->
+        <div id="panel-fare" class="tab-panel" role="tabpanel" aria-labelledby="tab-fare" hidden>
+          <form id="fare-form" class="search-form" novalidate>
+            <div class="form-multi-grid">
+              <div class="field-container">
+                <label for="fare-train-input" class="field-label">ट्रेन नंबर (5-digit)</label>
+                <div class="input-wrapper">
+                  <input id="fare-train-input" type="text" maxlength="5" placeholder="उदा. 12952" required />
+                </div>
+              </div>
+
+              <div class="field-container">
+                <label for="fare-from-input" class="field-label">प्रस्थान स्टेशन (From Code)</label>
+                <div class="input-wrapper">
+                  <input id="fare-from-input" type="text" maxlength="5" placeholder="उदा. NDLS" style="text-transform:uppercase;" required />
+                </div>
+              </div>
+
+              <div class="field-container">
+                <label for="fare-to-input" class="field-label">गंतव्य स्टेशन (To Code)</label>
+                <div class="input-wrapper">
+                  <input id="fare-to-input" type="text" maxlength="5" placeholder="उदा. MMCT" style="text-transform:uppercase;" required />
+                </div>
+              </div>
+
+              <div class="field-container">
+                <label for="fare-date-input" class="field-label">यात्रा तिथि (Date)</label>
+                <div class="input-wrapper">
+                  <input id="fare-date-input" type="date" required />
+                </div>
+              </div>
+
+              <div class="field-container">
+                <label for="fare-class-select" class="field-label">क्लास (Class)</label>
+                <div class="input-wrapper select-wrapper">
+                  <select id="fare-class-select">
+                    <option value="3A" selected>3A - Third AC</option>
+                    <option value="2A">2A - Second AC</option>
+                    <option value="1A">1A - First AC</option>
+                    <option value="3E">3E - AC 3 Economy</option>
+                    <option value="SL">SL - Sleeper</option>
+                    <option value="2S">2S - Second Sitting</option>
+                    <option value="CC">CC - AC Chair Car</option>
+                    <option value="EC">EC - Exec. Chair Car</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="field-container">
+                <label for="fare-quota-select" class="field-label">कोटा (Quota)</label>
+                <div class="input-wrapper select-wrapper">
+                  <select id="fare-quota-select">
+                    <option value="GN" selected>GN - General Quota</option>
+                    <option value="TQ">TQ - Tatkal Quota</option>
+                    <option value="LD">LD - Ladies Quota</option>
+                    <option value="SS">SS - Senior Citizen</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-bottom-row">
+              <div class="sample-action">
+                <button type="button" id="demo-fare" class="demo-link-btn">सैंपल किराया देखें (Demo)</button>
+              </div>
+              <button type="submit" id="btn-submit-fare" class="submit-button">
+                <span class="btn-text">किराया चेक करें</span>
+                <span class="btn-loader" aria-hidden="true"></span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Panel 5: Route & Trains Between Stations Form -->
+        <div id="panel-route" class="tab-panel" role="tabpanel" aria-labelledby="tab-route" hidden>
+          <form id="route-form" class="search-form" novalidate>
+            <div class="form-grid-row">
+              <div class="field-container">
+                <label for="route-from-input" class="field-label">प्रस्थान स्टेशन (From Station Code)</label>
+                <div class="input-wrapper">
+                  <input id="route-from-input" type="text" maxlength="5" placeholder="उदा. NDLS (नई दिल्ली)" style="text-transform:uppercase;" required />
+                </div>
+                <span class="field-subtext">स्टेशन कोड डालें (उदा. NDLS, HWH, BCT)।</span>
+              </div>
+
+              <div class="field-container">
+                <label for="route-to-input" class="field-label">गंतव्य स्टेशन (To Station Code)</label>
+                <div class="input-wrapper">
+                  <input id="route-to-input" type="text" maxlength="5" placeholder="उदा. MMCT (मुंबई सेंट्रल)" style="text-transform:uppercase;" required />
+                </div>
+                <span class="field-subtext">गंतव्य स्टेशन कोड लिखें।</span>
+              </div>
+
+              <div class="field-container">
+                <label for="route-date-input" class="field-label">यात्रा तिथि (वैकल्पिक)</label>
+                <div class="input-wrapper">
+                  <input id="route-date-input" type="date" />
+                </div>
+                <span class="field-subtext">तिथि चुनें (वैकल्पिक)।</span>
+              </div>
+
+              <div class="submit-container">
+                <button type="submit" id="btn-submit-route" class="submit-button">
+                  <span class="btn-text">ट्रेनें खोजें</span>
+                  <span class="btn-loader" aria-hidden="true"></span>
+                </button>
+              </div>
+            </div>
+
+            <div class="action-bar">
+              <div class="sample-action">
+                <span class="action-label">लोकप्रिय रूट:</span>
+                <button type="button" class="quick-route-btn" data-from="NDLS" data-to="MMCT">NDLS ➔ MMCT</button>
+                <button type="button" class="quick-route-btn" data-from="HWH" data-to="NDLS">HWH ➔ NDLS</button>
+                <button type="button" id="demo-route" class="demo-link-btn">सैंपल रूट देखें (Demo)</button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- User Feedback / Error Messages -->
+        <div id="feedback" class="status-alert" role="alert" aria-live="polite" hidden></div>
+      </section>
+
+      <!-- Recent Searches Strip -->
+      <div id="recent-container" class="recent-searches" hidden>
+        <span class="recent-heading">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          हाल की खोज:
+        </span>
+        <div id="recent-items" class="recent-list"></div>
+        <button type="button" id="clear-recent" class="clear-recent-btn">इतिहास हटाएं</button>
+      </div>
+
+      <!-- Output Result Area (PNR Slip, Live Train, Seats, Fare, Route) -->
+      <section id="result" class="result-area" aria-live="polite" hidden></section>
+
+      <!-- Classical Railway Information & FAQ Cards -->
+      <section class="info-section">
+        <h2 class="section-title">महत्वपूर्ण रेलवे नियम व सूचना</h2>
+        
+        <div class="info-grid">
+          <!-- Card 1: PNR Abbreviations -->
+          <div class="info-box">
+            <div class="box-header">
+              <div class="box-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                </svg>
+              </div>
+              <h3>PNR व सीट संकेतक</h3>
+            </div>
+            <ul class="info-list">
+              <li><strong>CNF (Confirmed):</strong> सीट पक्की है, कोच व बर्थ आवंटित हो चुकी है।</li>
+              <li><strong>RAC (Reservation Against Cancellation):</strong> यात्रा की पुष्टि; बैठने हेतु आधी सीट।</li>
+              <li><strong>WL (Waitlist):</strong> प्रतीक्षा सूची। चार्टिंग तक कन्फर्म होने की संभावना।</li>
+              <li><strong>तत्काल कोटा (TQ):</strong> यात्रा से 1 दिन पहले सुबह 10/11 बजे बुकिंग।</li>
+            </ul>
+          </div>
+
+          <!-- Card 2: Charting Timings -->
+          <div class="info-box">
+            <div class="box-header">
+              <div class="box-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+              </div>
+              <h3>आरक्षण चार्ट और हेल्पलाइन</h3>
+            </div>
+            <ul class="info-list">
+              <li><strong>पहला चार्ट:</strong> ट्रेन के प्रारंभिक स्टेशन से 4 घंटे पहले जारी होता है।</li>
+              <li><strong>दूसरा चार्ट:</strong> ट्रेन प्रस्थान से 30 मिनट पहले फाइनल होता है।</li>
+              <li><strong>किराया नियम:</strong> बेस फेयर + सुपरफास्ट + GST + खानपान (Catering) शुल्क।</li>
+              <li><strong>रेलवे पूछताछ हेल्पलाइन:</strong> किसी भी सहायता हेतु <strong>139</strong> डायल करें।</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Official Disclaimer Banner -->
+        <div class="disclaimer-card">
+          <div class="disclaimer-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+          </div>
+          <div class="disclaimer-text">
+            <strong>अस्वीकरण (Disclaimer):</strong> RailPlus एक स्वतंत्र सूचना सेवा है और इसका भारतीय रेल (Indian Railways), IRCTC अथवा CRIS से कोई प्रत्यक्ष संबंध नहीं है। टिकट बुकिंग, रिफंड या अन्य आधिकारिक सेवाओं के लिए कृपया आधिकारिक IRCTC पोर्टल (<a href="https://www.irctc.co.in" target="_blank" rel="noopener noreferrer">irctc.co.in</a>) अथवा NTES (<a href="https://enquiry.indianrail.gov.in/ntes/" target="_blank" rel="noopener noreferrer">enquiry.indianrail.gov.in</a>) का उपयोग करें।
+          </div>
         </div>
       </section>
 
-      <!-- Results Display Section -->
-      <section id="result" class="result-container" aria-live="polite" hidden></section>
+    </div>
+  </main>
 
-      <!-- Feature Highlights & Travel Guide -->
-      <section class="features-section">
-        <div class="features-header">
-          <span class="features-kicker">WHY RAILPLUS</span>
-          <h2>रेलवे सफ़र का सबसे स्मार्ट साथी</h2>
-          <p>बिना किसी विज्ञापन और झंझट के, सीधी और सुरक्षित रेलवे जानकारी।</p>
-        </div>
-
-        <div class="features-grid">
-          <div class="feature-card">
-            <div class="feature-icon-wrapper orange">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-              </svg>
-            </div>
-            <h3>100% डेटा प्राइवेसी</h3>
-            <p>आपका PNR नंबर हमारे सर्वर या डेटाबेस में कभी सेव नहीं होता। यह सीधे सुरक्षित HTTPS के जरिए एन्क्वायरी करता है।</p>
-          </div>
-
-          <div class="feature-card">
-            <div class="feature-icon-wrapper blue">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="2" y1="12" x2="22" y2="12"></line>
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-              </svg>
-            </div>
-            <h3>रीयल-टाइम GPS ट्रैकिंग</h3>
-            <p>ट्रेन की वर्तमान लोकेशन, स्टेशन पर पहुंचने का सही अनुमानित समय और कुल देरी का लाइव अपडेट पाएं।</p>
-          </div>
-
-          <div class="feature-card">
-            <div class="feature-icon-wrapper green">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                <line x1="8" y1="21" x2="16" y2="21"></line>
-                <line x1="12" y1="17" x2="12" y2="21"></line>
-              </svg>
-            </div>
-            <h3>चार्टिंग & कन्फर्मेशन स्टेटस</h3>
-            <p>चार्ट बना है या नहीं, बर्थ नंबर, कोच डिटेल्स और वेटिंग लिस्ट कन्फर्मेशन का तुरंत ब्यौरा देखें।</p>
-          </div>
-        </div>
-
-        <!-- Quick Travel Rules Banner -->
-        <div class="rules-card">
-          <div class="rules-badge">TRAVEL TIPS</div>
-          <div class="rules-list">
-            <div class="rule-item">
-              <strong>तातकाल समय:</strong>
-              <span>AC: सुबह 10:00 बजे | Non-AC: सुबह 11:00 बजे</span>
-            </div>
-            <div class="rule-item">
-              <strong>चार्टिंग नियम:</strong>
-              <span>पहला चार्ट ट्रेन चलने के 4 घंटे पहले और दूसरा चार्ट 30 मिनट पहले फाइनल होता है।</span>
-            </div>
-            <div class="rule-item">
-              <strong>RAC यात्रा:</strong>
-              <span>RAC टिकट वाले पैसेंजर्स ट्रेन में वैध यात्रा कर सकते हैं (सीट शेयरिंग आधार पर)।</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Privacy & Disclaimer Note -->
-      <section class="disclaimer-strip">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-        </svg>
-        <p>
-          <strong>सुरक्षा सूचना:</strong> RailPlus एक स्वतंत्र उपयोगिता सेवा है और यह Indian Railways, IRCTC या CRIS से आधिकारिक रूप से संबद्ध नहीं है।
-          सभी टिकट निर्णय और अंतिम स्टेटस भारतीय रेल के आधिकारिक काउंटर्स या 
-          <a href="https://www.indianrail.gov.in" target="_blank" rel="noopener noreferrer">indianrail.gov.in</a> से सत्यापित करें।
-        </p>
-      </section>
-    </main>
-
-    <!-- Sleek Modern Footer -->
-    <footer class="site-footer">
-      <div class="footer-content">
-        <div class="footer-main">
-          <div class="footer-logo">
-            <div class="brand-logo sm">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                <rect x="4" y="3" width="16" height="15" rx="3"></rect>
-                <line x1="4" y1="11" x2="20" y2="11"></line>
-                <circle cx="8.5" cy="15.5" r="1.5" fill="currentColor"></circle>
-                <circle cx="15.5" cy="15.5" r="1.5" fill="currentColor"></circle>
-              </svg>
-            </div>
-            <span class="brand-name">Rail<span class="brand-accent">Plus</span></span>
-          </div>
-          <p class="footer-desc">
-            Ultra-fast Indian Railway Status Web App with clean, modern aesthetics and privacy-first architecture.
-          </p>
-        </div>
-        <div class="footer-links">
-          <div class="link-group">
-            <h4>Quick Enquiries</h4>
-            <a href="#tab-pnr" onclick="document.getElementById('tab-pnr').click()">Check PNR Status</a>
-            <a href="#tab-train" onclick="document.getElementById('tab-train').click()">Live Running Train</a>
-            <a href="https://indianrail.gov.in" target="_blank" rel="noopener noreferrer">Indian Railways Portal</a>
-          </div>
-          <div class="link-group">
-            <h4>Railway Portals</h4>
-            <a href="https://enquiry.indianrail.gov.in/ntes/" target="_blank" rel="noopener noreferrer">NTES Live Portal</a>
-            <a href="https://www.irctc.co.in" target="_blank" rel="noopener noreferrer">IRCTC NextGen</a>
-            <a href="https://railkit.in" target="_blank" rel="noopener noreferrer">RailKit Developer API</a>
-          </div>
+  <!-- Classic Footer -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <div class="footer-col">
+        <div class="footer-brand">
+          <span class="footer-logo">Rail<strong>Plus</strong></span>
+          <p>भारतीय रेल यात्रियों के लिए सरल व सुरक्षित PNR, लाइव रनिंग, सीट, किराया व रूट वेब पोर्टल।</p>
         </div>
       </div>
-      <div class="footer-bottom">
-        <span>© 2026 RailPlus. Built with high precision. All railway trademarks belong to their respective owners.</span>
+      <div class="footer-col">
+        <h4>उपयोगी लिंक</h4>
+        <ul>
+          <li><a href="https://www.indianrail.gov.in" target="_blank" rel="noopener noreferrer">भारतीय रेल आधिकारिक वेबसाइट</a></li>
+          <li><a href="https://www.irctc.co.in" target="_blank" rel="noopener noreferrer">IRCTC ई-टिकटिंग सेवा</a></li>
+          <li><a href="https://enquiry.indianrail.gov.in/ntes/" target="_blank" rel="noopener noreferrer">NTES राष्ट्रीय ट्रेन पूछताछ प्रणाली</a></li>
+        </ul>
       </div>
-    </footer>
-  </div>
+      <div class="footer-col">
+        <h4>हेल्पलाइन व सुरक्षा</h4>
+        <ul>
+          <li>रेलवे सहायता नंबर: <strong>139</strong></li>
+          <li>डेटा प्राइवेसी: आपका PNR कभी स्टोर नहीं किया जाता</li>
+          <li>सुरक्षित HTTPS एन्क्रिप्शन</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-container">
+        <span>© 2026 RailPlus. सर्वाधिकार सुरक्षित। ट्रेडमार्क संबंधित स्वामियों की संपत्ति हैं।</span>
+      </div>
+    </div>
+  </footer>
 
-  <script src="config.js?v=4.0"></script>
-  <script src="app.js?v=4.0"></script>
+  <script src="config.js?v=6.0"></script>
+  <script src="app.js?v=6.0"></script>
 </body>
 </html>
