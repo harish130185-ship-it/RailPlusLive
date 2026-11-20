@@ -29,11 +29,76 @@ function stationName(node) {
   if (typeof node === 'string') return node;
   return first(node?.name, node?.stationName, node?.code, node?.stationCode);
 }
-function formatDateFromIso(iso) {
-  if (!iso) return '';
-  if (/^\d{2}-\d{2}-\d{4}$/.test(iso)) return iso;
-  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) { const [y,m,d] = iso.split('-'); return `${d}-${m}-${y}`; }
+function parseToIsoDate(dateInput) {
+  if (!dateInput) return '';
+  const str = String(dateInput).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+  const dmyMatch = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+  if (dmyMatch) {
+    const d = dmyMatch[1].padStart(2, '0');
+    const m = dmyMatch[2].padStart(2, '0');
+    const y = dmyMatch[3];
+    return `${y}-${m}-${d}`;
+  }
   return '';
+}
+function formatToDDMMYYYY(val) {
+  if (!val) return '';
+  let str = String(val).trim();
+  if (/^\d{2}-\d{2}-\d{4}$/.test(str)) return str;
+  if (/^\d{8}$/.test(str)) return `${str.slice(0, 2)}-${str.slice(2, 4)}-${str.slice(4)}`;
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(str)) return str.replace(/\//g, '-');
+  const ymdMatch = str.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if (ymdMatch) {
+    const y = ymdMatch[1];
+    const m = ymdMatch[2].padStart(2, '0');
+    const d = ymdMatch[3].padStart(2, '0');
+    return `${d}-${m}-${y}`;
+  }
+  const dmyShortMatch = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{2})$/);
+  if (dmyShortMatch) {
+    const d = dmyShortMatch[1].padStart(2, '0');
+    const m = dmyShortMatch[2].padStart(2, '0');
+    const y = `20${dmyShortMatch[3]}`;
+    return `${d}-${m}-${y}`;
+  }
+  const monthMap = {
+    'jan': '01', 'january': '01', 'जनवरी': '01',
+    'feb': '02', 'february': '02', 'फरवरी': '02',
+    'mar': '03', 'march': '03', 'मार्च': '03',
+    'apr': '04', 'april': '04', 'अप्रैल': '04',
+    'may': '05', 'मई': '05',
+    'jun': '06', 'june': '06', 'जून': '06',
+    'jul': '07', 'july': '07', 'जुलाई': '07',
+    'aug': '08', 'august': '08', 'अगस्त': '08',
+    'sep': '09', 'sept': '09', 'september': '09', 'सितंबर': '09',
+    'oct': '10', 'october': '10', 'अक्टूबर': '10',
+    'nov': '11', 'november': '11', 'नवंबर': '11',
+    'dec': '12', 'december': '12', 'दिसंबर': '12'
+  };
+  const parts = str.split(/[-/.\s]+/);
+  if (parts.length === 3) {
+    let p0 = parts[0];
+    let p1 = parts[1].toLowerCase();
+    let p2 = parts[2];
+    if (monthMap[p1]) {
+      const d = p0.padStart(2, '0');
+      const m = monthMap[p1];
+      const y = p2.length === 2 ? `20${p2}` : p2;
+      return `${d}-${m}-${y}`;
+    }
+  }
+  const parsed = new Date(str);
+  if (!isNaN(parsed.getTime())) {
+    const d = String(parsed.getDate()).padStart(2, '0');
+    const m = String(parsed.getMonth() + 1).padStart(2, '0');
+    const y = parsed.getFullYear();
+    return `${d}-${m}-${y}`;
+  }
+  return str;
+}
+function formatDateFromIso(iso) {
+  return formatToDDMMYYYY(iso);
 }
 function istDateParts(date = new Date()) {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' })
@@ -80,7 +145,7 @@ export function normalizePNR(payload, number) {
     chartingStation: stationName(source.chartingStation || source.chartingPoint || details.source || source.source),
     journeyClass: first(details.class, source.journeyClass, source.class),
     quota: first(details.quota, source.quota),
-    journeyDate: first(details.date, details.journeyDate, source.journeyDate, source.date),
+    journeyDate: formatToDDMMYYYY(first(details.date, details.journeyDate, source.journeyDate, source.date)),
     chartStatus: chartStatus || 'Not reported',
     passengers: passengers.map((person) => ({
       bookingStatus: first(person?.booking?.details, person?.booking?.status, person?.bookingStatus) || 'Not reported',
@@ -124,7 +189,7 @@ export function normalizeTrain(payload, number, isoDate) {
   return {
     trainNumber: first(src.trainNo, src.trainNumber, number),
     trainName: first(src.trainName, src.name),
-    journeyDate: isoDate,
+    journeyDate: formatToDDMMYYYY(isoDate),
     runningStatus: first(src.statusNote, src.statusText, src.progress?.journeyStatus) || 'Not reported',
     delayMinutes: delayMinutes(src.delayMinutes) ?? inferredDelay,
     currentStation: currentCode || 'Not reported',
@@ -213,7 +278,7 @@ function normalizeAvailability(payload) {
       total: fare.totalFare ?? fare.total ?? null
     },
     availability: availability.map(item => ({
-      date: first(item.date),
+      date: formatToDDMMYYYY(first(item.date)),
       status: first(item.availabilityText, item.status, item.availability),
       prediction: first(item.prediction)
     }))
@@ -225,6 +290,7 @@ function normalizeFare(payload) {
   return {
     trainNumber: first(data.trainNo, data.train_no, data.trainNumber),
     trainName: first(data.trainName, data.train_name, data.name),
+    journeyDate: formatToDDMMYYYY(first(data.date, data.journeyDate)),
     from: first(data.from),
     to: first(data.to),
     class: first(data.class),
@@ -360,7 +426,8 @@ export function createHandler({ apiKey = process.env.RAILKIT_API_KEY, apiUrl = p
         if (req.method !== 'GET') return error(res, 405, 'Method not allowed');
         if (!allowRequest(req)) return error(res, 429, 'बहुत सारे अनुरोध किए गए। 1 मिनट बाद कोशिश करें।');
         const number = requestUrl.searchParams.get('number') || '';
-        const date = requestUrl.searchParams.get('date') || '';
+        const rawDate = requestUrl.searchParams.get('date') || '';
+        const date = parseToIsoDate(rawDate) || rawDate;
         if (!/^\d{5}$/.test(number)) return error(res, 400, 'ट्रेन नंबर में ठीक 5 अंक होने चाहिए।');
         if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(daysAgoInIndia(date)) || daysAgoInIndia(date) < 0 || daysAgoInIndia(date) > 5) {
           return error(res, 400, 'ट्रेन की प्रारंभ तारीख आज या पिछले 5 दिनों की चुनें (IST)।');
@@ -390,7 +457,8 @@ export function createHandler({ apiKey = process.env.RAILKIT_API_KEY, apiUrl = p
         if (!allowRequest(req)) return error(res, 429, 'बहुत सारे अनुरोध किए गए। 1 मिनट बाद कोशिश करें।');
         const from = stationCode(requestUrl.searchParams.get('from'));
         const to = stationCode(requestUrl.searchParams.get('to'));
-        const date = requestUrl.searchParams.get('date') || '';
+        const rawDate = requestUrl.searchParams.get('date') || '';
+        const date = parseToIsoDate(rawDate) || rawDate;
         if (!/^[A-Z0-9]{1,5}$/.test(from) || !/^[A-Z0-9]{1,5}$/.test(to)) return error(res, 400, 'दोनों स्टेशन के सही स्टेशन कोड दर्ज करें।');
         if (from === to) return error(res, 400, 'शुरुआत और गंतव्य स्टेशन अलग होने चाहिए।');
         if (date && (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(daysAgoInIndia(date)) || daysAgoInIndia(date) > 0)) {
@@ -406,7 +474,8 @@ export function createHandler({ apiKey = process.env.RAILKIT_API_KEY, apiUrl = p
         const number = requestUrl.searchParams.get('number') || '';
         const from = stationCode(requestUrl.searchParams.get('from'));
         const to = stationCode(requestUrl.searchParams.get('to'));
-        const date = requestUrl.searchParams.get('date') || '';
+        const rawDate = requestUrl.searchParams.get('date') || '';
+        const date = parseToIsoDate(rawDate) || rawDate;
         const travelClass = (requestUrl.searchParams.get('class') || '').toUpperCase();
         const quota = (requestUrl.searchParams.get('quota') || '').toUpperCase();
         const seatClasses = ['2S', 'SL', '3A', '3E', '2A', '1A', 'CC', 'EC'];

@@ -5,24 +5,76 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#13335a" />
   <meta name="description" content="RailPlus — भारतीय रेल PNR, लाइव ट्रेन रनिंग, सीट उपलब्धता, किराया व रूट पूछताछ सेवा।" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="RailPlus" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
   <link rel="icon" href="logo.png" type="image/png" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="stylesheet" href="styles.css?v=13.0" />
+  <link rel="stylesheet" href="styles.css?v=16.0" />
   <title>RailPlus — PNR, लाइव ट्रेन, सीट, किराया व रूट पूछताछ</title>
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(regs) {
-        for (var r of regs) { r.unregister(); }
-      });
-    }
-    if ('caches' in window) {
-      caches.keys().then(function(keys) {
-        keys.forEach(function(k) { caches.delete(k); });
-      });
-    }
-  </script>
 </head>
 <body>
+  <!-- Manual Install Guide Modal (Shown if browser is in cooldown or iOS) -->
+  <div id="pwa-guide-modal" class="pwa-modal-overlay" hidden>
+    <div class="pwa-modal-card">
+      <div class="pwa-modal-header">
+        <div class="pwa-modal-title">
+          <img src="logo.png" alt="RailPlus" style="width:28px;height:28px;object-fit:contain;background:#ffffff;border-radius:4px;padding:2px;" />
+          <h3>RailPlus ऐप इंस्टॉल करें</h3>
+        </div>
+        <button type="button" id="btn-close-pwa-modal" class="pwa-modal-close" aria-label="Close">✕</button>
+      </div>
+      <div class="pwa-modal-body">
+        <div class="install-guide-step">
+          <div class="step-num">1</div>
+          <div class="step-text">
+            <strong>ब्राउज़र मेनू खोलें</strong>
+            <p>ब्राउज़र में ऊपर दाईं ओर <strong>3 डॉट्स (⋮)</strong> या Safari में नीचे <strong>Share (⎋)</strong> पर टैप करें।</p>
+          </div>
+        </div>
+        <div class="install-guide-step">
+          <div class="step-num">2</div>
+          <div class="step-text">
+            <strong>'Install app' या 'Add to Home screen' चुनें</strong>
+            <p>मेनू में <strong>"Install app"</strong> या <strong>"Add to Home Screen" (होम स्क्रीन पर जोड़ें)</strong> पर क्लिक करें।</p>
+          </div>
+        </div>
+        <div class="install-guide-step">
+          <div class="step-num">3</div>
+          <div class="step-text">
+            <strong>पुष्टि करें</strong>
+            <p><strong>"Install"</strong> पर टैप करते ही RailPlus ऐप आपके मोबाइल में आ जाएगा।</p>
+          </div>
+        </div>
+      </div>
+      <div class="pwa-modal-footer">
+        <button type="button" id="btn-understood-pwa" class="submit-button" style="width:100%;height:44px;">समझ गए (Got It)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PWA Install Banner (App Download Bar) -->
+  <aside id="pwa-install-banner" class="pwa-install-banner" aria-label="RailPlus App Install" hidden>
+    <div class="pwa-banner-main">
+      <div class="pwa-banner-icon-box">
+        <img src="logo.png" alt="RailPlus" />
+      </div>
+      <div class="pwa-banner-info">
+        <strong>RailPlus ऐप इंस्टॉल करें</strong>
+        <span>1-क्लिक में PNR, सीट व लाइव स्टेटस</span>
+      </div>
+    </div>
+    <div class="pwa-banner-actions">
+      <button type="button" id="btn-pwa-install" class="pwa-btn-install">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span>ऐप डाउनलोड करें</span>
+      </button>
+      <button type="button" id="btn-pwa-dismiss" class="pwa-btn-close" aria-label="Dismiss">✕</button>
+    </div>
+  </aside>
+
   <!-- Header / Navigation -->
   <header class="app-header">
     <div class="header-container">
@@ -39,6 +91,10 @@
       </div>
 
       <div class="header-right">
+        <button type="button" id="header-install-btn" class="header-install-btn" title="RailPlus ऐप इंस्टॉल करें">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>ऐप डाउनलोड</span>
+        </button>
         <div class="system-status" id="api-indicator">
           <span class="status-dot"></span>
           <span class="status-text">सर्वर ऑनलाइन</span>
@@ -215,8 +271,9 @@
                     <span>यात्रा तिथि (वैकल्पिक)</span>
                   </label>
                   <div class="input-wrapper">
-                    <input id="route-date-input" type="date" />
+                    <input id="route-date-input" type="date" lang="en-IN" title="तारीख प्रारूप: DD-MM-YYYY" />
                   </div>
+                  <span class="field-subtext">प्रारूप: DD-MM-YYYY</span>
                 </div>
               </div>
             </div>
@@ -275,8 +332,9 @@
                     <span>यात्रा तिथि (Date)</span>
                   </label>
                   <div class="input-wrapper">
-                    <input id="seats-date-input" type="date" required />
+                    <input id="seats-date-input" type="date" lang="en-IN" title="तारीख प्रारूप: DD-MM-YYYY" required />
                   </div>
+                  <span class="field-subtext">प्रारूप: DD-MM-YYYY</span>
                 </div>
               </div>
 
@@ -369,9 +427,9 @@
                     <span>प्रारंभ तिथि (Start Date)</span>
                   </label>
                   <div class="input-wrapper">
-                    <input id="journey-date" type="date" required />
+                    <input id="journey-date" type="date" lang="en-IN" title="तारीख प्रारूप: DD-MM-YYYY" required />
                   </div>
-                  <span class="field-subtext">शुरुआती स्टेशन से प्रस्थान</span>
+                  <span class="field-subtext">प्रारूप: DD-MM-YYYY • शुरुआती स्टेशन से प्रस्थान</span>
                 </div>
               </div>
             </div>
@@ -430,8 +488,9 @@
                 <div class="field-container flex-1">
                   <label for="fare-date-input" class="field-label">यात्रा तिथि (Date)</label>
                   <div class="input-wrapper">
-                    <input id="fare-date-input" type="date" required />
+                    <input id="fare-date-input" type="date" lang="en-IN" title="तारीख प्रारूप: DD-MM-YYYY" required />
                   </div>
+                  <span class="field-subtext">प्रारूप: DD-MM-YYYY</span>
                 </div>
               </div>
 
@@ -600,7 +659,7 @@
     </div>
   </footer>
 
-  <script src="config.js?v=13.0"></script>
-  <script src="app.js?v=13.0"></script>
+  <script src="config.js?v=16.0"></script>
+  <script src="app.js?v=16.0"></script>
 </body>
 </html>

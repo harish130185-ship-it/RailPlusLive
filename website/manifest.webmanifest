@@ -1,14 +1,33 @@
 {
   "name": "RailPlus — PNR & Live Train Status",
   "short_name": "RailPlus",
-  "description": "PNR status aur live train running updates with a fast, secure railway API.",
-  "start_url": "./index.html",
+  "description": "भारतीय रेल PNR स्टेटस, लाइव ट्रेन रनिंग, सीट उपलब्धता, किराया व रूट पूछताछ सेवा।",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#0a1128",
-  "theme_color": "#0f172a",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#0f294a",
   "lang": "hi",
+  "categories": ["travel", "utilities"],
   "icons": [
-    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
-    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
+    }
   ]
 }

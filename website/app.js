@@ -19,6 +19,63 @@
     return `${parts.year}-${parts.month}-${parts.day}`;
   };
 
+  // Indian Railway Standard Date Formatter: strictly DD-MM-YYYY
+  function formatToDDMMYYYY(val) {
+    if (!val) return '—';
+    let str = String(val).trim();
+    if (/^\d{2}-\d{2}-\d{4}$/.test(str)) return str;
+    if (/^\d{8}$/.test(str)) return `${str.slice(0, 2)}-${str.slice(2, 4)}-${str.slice(4)}`;
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(str)) return str.replace(/\//g, '-');
+    const ymdMatch = str.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+    if (ymdMatch) {
+      const y = ymdMatch[1];
+      const m = ymdMatch[2].padStart(2, '0');
+      const d = ymdMatch[3].padStart(2, '0');
+      return `${d}-${m}-${y}`;
+    }
+    const dmyShortMatch = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{2})$/);
+    if (dmyShortMatch) {
+      const d = dmyShortMatch[1].padStart(2, '0');
+      const m = dmyShortMatch[2].padStart(2, '0');
+      const y = `20${dmyShortMatch[3]}`;
+      return `${d}-${m}-${y}`;
+    }
+    const monthMap = {
+      'jan': '01', 'january': '01', 'जनवरी': '01',
+      'feb': '02', 'february': '02', 'फरवरी': '02',
+      'mar': '03', 'march': '03', 'मार्च': '03',
+      'apr': '04', 'april': '04', 'अप्रैल': '04',
+      'may': '05', 'मई': '05',
+      'jun': '06', 'june': '06', 'जून': '06',
+      'jul': '07', 'july': '07', 'जुलाई': '07',
+      'aug': '08', 'august': '08', 'अगस्त': '08',
+      'sep': '09', 'sept': '09', 'september': '09', 'सितंबर': '09',
+      'oct': '10', 'october': '10', 'अक्टूबर': '10',
+      'nov': '11', 'november': '11', 'नवंबर': '11',
+      'dec': '12', 'december': '12', 'दिसंबर': '12'
+    };
+    const parts = str.split(/[-/.\s]+/);
+    if (parts.length === 3) {
+      let p0 = parts[0];
+      let p1 = parts[1].toLowerCase();
+      let p2 = parts[2];
+      if (monthMap[p1]) {
+        const d = p0.padStart(2, '0');
+        const m = monthMap[p1];
+        const y = p2.length === 2 ? `20${p2}` : p2;
+        return `${d}-${m}-${y}`;
+      }
+    }
+    const parsed = new Date(str);
+    if (!isNaN(parsed.getTime())) {
+      const d = String(parsed.getDate()).padStart(2, '0');
+      const m = String(parsed.getMonth() + 1).padStart(2, '0');
+      const y = parsed.getFullYear();
+      return `${d}-${m}-${y}`;
+    }
+    return str;
+  }
+
   // Setup Date Constraints
   const todayIso = indiaISO();
   
@@ -27,6 +84,7 @@
   if (trainDateInput) {
     trainDateInput.value = todayIso;
     trainDateInput.max = todayIso;
+    trainDateInput.setAttribute('lang', 'en-IN');
     const minDate = new Date(`${todayIso}T00:00:00Z`);
     minDate.setUTCDate(minDate.getUTCDate() - 5);
     trainDateInput.min = minDate.toISOString().slice(0, 10);
@@ -43,6 +101,7 @@
       el.value = todayIso;
       el.min = todayIso;
       el.max = maxFutureIso;
+      el.setAttribute('lang', 'en-IN');
     }
   });
 
@@ -792,7 +851,7 @@
           </div>
           <div class="route-mid">
             <span class="route-arrow">➔</span>
-            <span class="date-pill">यात्रा तिथि: <strong>${safe(data.journeyDate || '—')}</strong></span>
+            <span class="date-pill">यात्रा तिथि: <strong>${safe(formatToDDMMYYYY(data.journeyDate || '—'))}</strong></span>
           </div>
           <div class="station-point destination">
             <span class="stn-label">गंतव्य (Destination)</span>
@@ -901,7 +960,7 @@
         <div class="live-card-header">
           <div class="live-train-info">
             <h2>${safe(data.trainNumber)} — ${safe(data.trainName)}</h2>
-            <p>वर्तमान स्थिति: <strong>${safe(data.currentStation || 'मार्ग में')}</strong></p>
+            <p>${data.journeyDate ? `प्रारंभ तिथि: <strong>${safe(formatToDDMMYYYY(data.journeyDate))}</strong> | ` : ''}वर्तमान स्थिति: <strong>${safe(data.currentStation || 'मार्ग में')}</strong></p>
           </div>
           <div>
             <span class="delay-pill ${isDelayed ? 'delayed' : 'on-time'}">
@@ -951,7 +1010,7 @@
 
       return `
         <tr>
-          <td><strong>${safe(item.date)}</strong></td>
+          <td><strong>${safe(formatToDDMMYYYY(item.date))}</strong></td>
           <td>
             <span class="avail-badge ${badgeCls}">${safe(statusText)}</span>
           </td>
@@ -970,7 +1029,7 @@
         <div class="result-card-header">
           <div>
             <h2>${safe(data.trainNumber)} — ${safe(data.trainName)}</h2>
-            <p>${safe(data.from)} ➔ ${safe(data.to)} | क्लास: <strong>${safe(data.class || '3A')}</strong> | कोटा: <strong>${safe(data.quota || 'GN')}</strong></p>
+            <p>${safe(data.from)} ➔ ${safe(data.to)} | ${data.journeyDate ? `यात्रा तिथि: <strong>${safe(formatToDDMMYYYY(data.journeyDate))}</strong> | ` : ''}क्लास: <strong>${safe(data.class || '3A')}</strong> | कोटा: <strong>${safe(data.quota || 'GN')}</strong></p>
           </div>
           <div>
             <span class="card-badge">सीट उपलब्धता (Seat Status)</span>
@@ -1014,7 +1073,7 @@
         <div class="result-card-header">
           <div>
             <h2>${safe(data.trainNumber)} — ${safe(data.trainName)}</h2>
-            <p>${safe(data.from)} ➔ ${safe(data.to)} | क्लास: <strong>${safe(data.class || '3A')}</strong></p>
+            <p>${safe(data.from)} ➔ ${safe(data.to)} | ${data.journeyDate ? `यात्रा तिथि: <strong>${safe(formatToDDMMYYYY(data.journeyDate))}</strong> | ` : ''}क्लास: <strong>${safe(data.class || '3A')}</strong></p>
           </div>
           <div>
             <span class="card-badge">किराया विवरण (Fare Breakdown)</span>
@@ -1298,7 +1357,7 @@
         <div class="result-card-header">
           <div>
             <h2>${searchFrom ? safe(searchFrom) : ''} ➔ ${searchTo ? safe(searchTo) : ''} ट्रेनों की सूची</h2>
-            <p>कुल ट्रेनें: <strong>${trains.length}</strong> • यात्रा तिथि: <strong>${safe(targetDate)}</strong></p>
+            <p>कुल ट्रेनें: <strong>${trains.length}</strong> • यात्रा तिथि: <strong>${safe(formatToDDMMYYYY(targetDate))}</strong></p>
           </div>
           <div>
             <span class="card-badge">डायरेक्ट ट्रेनें &amp; सीट स्थिति</span>
@@ -1503,7 +1562,7 @@
       if (/^\d{5}$/.test(trainNumber)) {
         const selectedClass = cls || '3A';
         const data = await fetchLive(`/api/seats?number=${encodeURIComponent(trainNumber)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(date)}&class=${encodeURIComponent(selectedClass)}&quota=${encodeURIComponent(quota)}`);
-        renderSeats(data);
+        renderSeats({ ...data, journeyDate: date });
       } else {
         // If train number is NOT given, search all trains between stations and show seats underneath!
         const data = await fetchLive(`/api/route?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}${date ? `&date=${encodeURIComponent(date)}` : ''}`);
@@ -1535,7 +1594,7 @@
     const release = beginLoading($('btn-submit-train'));
     try {
       const data = await fetchLive(`/api/train?number=${encodeURIComponent(trainNum)}&date=${encodeURIComponent(dateVal)}`);
-      renderTrain(data);
+      renderTrain({ ...data, journeyDate: dateVal });
     } catch (err) {
       notify(`ट्रेन स्थिति प्राप्त नहीं हो सकी: ${err.message}`);
     } finally {
@@ -1567,7 +1626,7 @@
     const release = beginLoading($('btn-submit-fare'));
     try {
       const data = await fetchLive(`/api/fare?number=${encodeURIComponent(number)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(date)}&class=${encodeURIComponent(cls)}&quota=${encodeURIComponent(quota)}`);
-      renderFare(data);
+      renderFare({ ...data, journeyDate: date });
     } catch (err) {
       notify(`किराया जानकारी नहीं मिली: ${err.message}`);
     } finally {
@@ -1595,7 +1654,7 @@
       chartingStation: 'नई दिल्ली (NDLS)',
       journeyClass: '3A (Third AC)',
       quota: 'GN (General)',
-      journeyDate: '24-नवंबर-2026',
+      journeyDate: '24-11-2026',
       chartStatus: 'Chart Prepared',
       passengers: [
         { bookingStatus: 'B3, 42 (Lower)', currentStatus: 'CNF B3-42', coach: 'B3', berth: '42', berthType: 'Lower Berth' },
@@ -1616,6 +1675,7 @@
       trainName: 'मुंबई राजधानी एक्सप्रेस (MUMBAI RAJDHANI)',
       currentStation: 'कोटा जंक्शन (KOTA)',
       delayMinutes: 0,
+      journeyDate: '20-11-2026',
       progressPercent: 68,
       stations: [
         { name: 'नई दिल्ली (NDLS)', scheduled: '16:55', expected: '16:55', status: 'passed', platform: '3' },
@@ -1643,14 +1703,15 @@
       trainName: 'MMCT TEJAS RAJDHANI',
       from: 'नई दिल्ली (NDLS)',
       to: 'मुंबई सेंट्रल (MMCT)',
+      journeyDate: '25-11-2026',
       class: '3A',
       quota: 'GN',
       fare: { total: 3165 },
       availability: [
-        { date: '25-नवंबर-2026', status: 'AVAILABLE 0038', prediction: '94% Chance' },
-        { date: '26-नवंबर-2026', status: 'AVAILABLE 0012', prediction: '88% Chance' },
-        { date: '27-नवंबर-2026', status: 'RAC 08', prediction: '76% Chance' },
-        { date: '28-नवंबर-2026', status: 'WL 24', prediction: '52% Chance' }
+        { date: '25-11-2026', status: 'AVAILABLE 0038', prediction: '94% Chance' },
+        { date: '26-11-2026', status: 'AVAILABLE 0012', prediction: '88% Chance' },
+        { date: '27-11-2026', status: 'RAC 08', prediction: '76% Chance' },
+        { date: '28-11-2026', status: 'WL 24', prediction: '52% Chance' }
       ]
     }, true);
   });
@@ -1667,6 +1728,7 @@
       trainName: 'MMCT TEJAS RAJDHANI',
       from: 'NDLS (नई दिल्ली)',
       to: 'MMCT (मुंबई सेंट्रल)',
+      journeyDate: '20-11-2026',
       class: '3A (Third AC)',
       distance: 1384,
       baseFare: 1820,
@@ -1693,19 +1755,86 @@
     ], true, { from: 'NDLS', to: 'MMCT', date: todayIso });
   });
 
-  // Service Worker Management (Disable cache on localhost to guarantee live updates)
-  if (['localhost', '127.0.0.1'].includes(window.location.hostname)) {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(regs => {
-        regs.forEach(r => r.unregister());
-      });
+  // ==========================================================================
+  // PWA App Installation & Service Worker Manager
+  // ==========================================================================
+  let deferredInstallPrompt = null;
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+  function showPwaBanner() {
+    if (isStandalone) return;
+    if (sessionStorage.getItem('railplus_pwa_dismissed')) return;
+    const banner = $('pwa-install-banner');
+    if (banner) banner.hidden = false;
+  }
+
+  function hidePwaBanner() {
+    const banner = $('pwa-install-banner');
+    if (banner) banner.hidden = true;
+    sessionStorage.setItem('railplus_pwa_dismissed', 'true');
+  }
+
+  function openPwaGuideModal() {
+    const modal = $('pwa-guide-modal');
+    if (modal) modal.hidden = false;
+  }
+
+  function closePwaGuideModal() {
+    const modal = $('pwa-guide-modal');
+    if (modal) modal.hidden = true;
+  }
+
+  // Capture native browser beforeinstallprompt event
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    showPwaBanner();
+  });
+
+  // Handle Install Action
+  async function triggerAppInstall() {
+    if (deferredInstallPrompt) {
+      try {
+        deferredInstallPrompt.prompt();
+        const choice = await deferredInstallPrompt.userChoice;
+        if (choice?.outcome === 'accepted') {
+          hidePwaBanner();
+        }
+      } catch (_) {
+        openPwaGuideModal();
+      }
+      deferredInstallPrompt = null;
+    } else {
+      // If browser native prompt is in cooldown or on iOS Safari, show step-by-step installation guide
+      openPwaGuideModal();
     }
-    if ('caches' in window) {
-      caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
-    }
-  } else if ('serviceWorker' in navigator && ['https:'].includes(location.protocol)) {
+  }
+
+  // Wire buttons
+  $('btn-pwa-install')?.addEventListener('click', triggerAppInstall);
+  $('header-install-btn')?.addEventListener('click', triggerAppInstall);
+  $('btn-pwa-dismiss')?.addEventListener('click', hidePwaBanner);
+  $('btn-close-pwa-modal')?.addEventListener('click', closePwaGuideModal);
+  $('btn-understood-pwa')?.addEventListener('click', closePwaGuideModal);
+
+  // Close modal when clicking on overlay background
+  $('pwa-guide-modal')?.addEventListener('click', (e) => {
+    if (e.target === $('pwa-guide-modal')) closePwaGuideModal();
+  });
+
+  // Show banner after brief delay if not standalone
+  if (!isStandalone) {
+    setTimeout(showPwaBanner, 1000);
+  }
+
+  // Register Service Worker reliably for PWA installability
+  if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').catch(() => {});
+      navigator.serviceWorker.register('./sw.js')
+        .then((reg) => {
+          reg.update();
+        })
+        .catch(() => {});
     });
   }
 })();
