@@ -2377,7 +2377,7 @@
   }
 
   function renderPassengerMasterList() {
-    const listEl = $('passenger-master-list');
+    const listEl = $('saved-passengers-list') || $('passenger-master-list');
     if (!listEl) return;
     const passengers = getSavedPassengers();
 
@@ -2424,7 +2424,8 @@
     renderPassengerMasterList();
   }
 
-  $('passenger-master-form')?.addEventListener('submit', (e) => {
+  const pmForm = $('add-passenger-form') || $('passenger-master-form');
+  pmForm?.addEventListener('submit', (e) => {
     e.preventDefault();
     const name = ($('pm-name')?.value || '').trim();
     const age = Number($('pm-age')?.value || 0);
@@ -2462,7 +2463,7 @@
 
     currentList.push(newPax);
     savePassengerList(currentList);
-    $('passenger-master-form').reset();
+    pmForm.reset();
     renderPassengerMasterList();
   });
 
@@ -2476,6 +2477,14 @@
     const modal = $('passenger-master-modal');
     if (modal) modal.hidden = true;
   }
+  $('shortcut-passenger-master')?.addEventListener('click', openPassengerModal);
+  $('shortcut-saved-journeys')?.addEventListener('click', openJourneysModal);
+  $('shortcut-booking-history')?.addEventListener('click', openDashboardModal);
+  $('shortcut-pnr-status')?.addEventListener('click', () => {
+    switchTab('pnr');
+    $('pnr-input')?.focus();
+  });
+
   $('nav-btn-passengers')?.addEventListener('click', openPassengerModal);
   $('btn-shortcut-passengers')?.addEventListener('click', openPassengerModal);
   $('dash-menu-passengers')?.addEventListener('click', () => { closeDashboardModal(); openPassengerModal(); });
@@ -2515,7 +2524,7 @@
   }
 
   function renderSavedJourneysList() {
-    const listEl = $('saved-journeys-list');
+    const listEl = $('saved-journeys-items-list') || $('saved-journeys-list');
     if (!listEl) return;
     const journeys = getSavedJourneys();
 
@@ -2579,7 +2588,8 @@
     });
   }
 
-  $('add-journey-form')?.addEventListener('submit', (e) => {
+  const sjForm = $('add-saved-journey-form') || $('add-journey-form');
+  sjForm?.addEventListener('submit', (e) => {
     e.preventDefault();
     const fromVal = ($('add-route-from')?.value || '').trim().toUpperCase();
     const toVal = ($('add-route-to')?.value || '').trim().toUpperCase();
@@ -2599,7 +2609,7 @@
     };
     currentList.push(newJourney);
     saveJourneysList(currentList);
-    $('add-journey-form').reset();
+    sjForm.reset();
     renderSavedJourneysList();
   });
 
@@ -2628,9 +2638,9 @@
     const routesCount = getSavedJourneys().length;
     const bookingCount = getBookingHistory().length;
 
-    const elPax = $('dash-stat-passengers');
-    const elRoutes = $('dash-stat-routes');
-    const elBookings = $('dash-stat-bookings');
+    const elPax = $('stat-passengers-count') || $('dash-stat-passengers');
+    const elRoutes = $('stat-journeys-count') || $('dash-stat-routes');
+    const elBookings = $('stat-bookings-count') || $('dash-stat-bookings');
     if (elPax) elPax.textContent = String(paxCount);
     if (elRoutes) elRoutes.textContent = String(routesCount);
     if (elBookings) elBookings.textContent = String(bookingCount);
@@ -2765,43 +2775,31 @@
       `;
     }
 
-    const paxSelectorContainer = $('booking-pax-selector');
-    const reviewContainer = $('booking-review-summary');
-    const irctcHandoffContainer = $('booking-irctc-handoff');
+    const stepMain = $('booking-step-content-main');
+    const stepHandoff = $('booking-handoff-section');
     const btnBack = $('btn-booking-back');
     const btnProceed = $('btn-booking-proceed');
 
-    if (activeBookingStep === 2) {
-      if (paxSelectorContainer) paxSelectorContainer.hidden = false;
-      if (reviewContainer) reviewContainer.hidden = true;
-      if (irctcHandoffContainer) irctcHandoffContainer.hidden = true;
-      if (btnBack) btnBack.hidden = true;
+    if (activeBookingStep <= 2) {
+      if (stepMain) stepMain.style.display = 'block';
+      if (stepHandoff) stepHandoff.style.display = 'none';
+      if (btnBack) btnBack.style.display = 'none';
       if (btnProceed) {
-        btnProceed.hidden = false;
+        btnProceed.style.display = 'block';
         btnProceed.textContent = 'Continue to Review ➔';
       }
       renderBookingPassengerCheckboxes();
-    } else if (activeBookingStep === 3) {
-      if (paxSelectorContainer) paxSelectorContainer.hidden = true;
-      if (reviewContainer) reviewContainer.hidden = false;
-      if (irctcHandoffContainer) irctcHandoffContainer.hidden = true;
-      if (btnBack) btnBack.hidden = false;
-      if (btnProceed) {
-        btnProceed.hidden = false;
-        btnProceed.textContent = 'Proceed to IRCTC Handoff ➔';
-      }
+    } else {
+      if (stepMain) stepMain.style.display = 'none';
+      if (stepHandoff) stepHandoff.style.display = 'block';
+      if (btnBack) btnBack.style.display = 'inline-flex';
+      if (btnProceed) btnProceed.style.display = 'none';
       renderBookingReview();
-    } else if (activeBookingStep === 4) {
-      if (paxSelectorContainer) paxSelectorContainer.hidden = true;
-      if (reviewContainer) reviewContainer.hidden = true;
-      if (irctcHandoffContainer) irctcHandoffContainer.hidden = false;
-      if (btnBack) btnBack.hidden = false;
-      if (btnProceed) btnProceed.hidden = true; // Final step has IRCTC buttons directly
     }
   }
 
   function renderBookingPassengerCheckboxes() {
-    const listEl = $('booking-pax-list');
+    const listEl = $('booking-passenger-selection-list') || $('booking-pax-list');
     if (!listEl) return;
     const saved = getSavedPassengers();
 
@@ -2843,7 +2841,7 @@
   }
 
   function renderBookingReview() {
-    const reviewEl = $('booking-review-summary');
+    const reviewEl = $('booking-final-review') || $('booking-review-summary');
     if (!reviewEl || !activeBooking) return;
 
     const count = activeBooking.selectedPassengers.length;
@@ -2878,12 +2876,12 @@
 
   // Quick Add Passenger inside Booking Modal
   $('btn-quick-add-pax')?.addEventListener('click', () => {
-    const qForm = $('booking-quick-add-form');
-    if (qForm) qForm.hidden = false;
+    const qForm = $('quick-add-pax-box') || $('booking-quick-add-form');
+    if (qForm) qForm.style.display = 'block';
   });
   $('btn-cancel-qadd')?.addEventListener('click', () => {
-    const qForm = $('booking-quick-add-form');
-    if (qForm) qForm.hidden = true;
+    const qForm = $('quick-add-pax-box') || $('booking-quick-add-form');
+    if (qForm) qForm.style.display = 'none';
   });
   $('btn-save-qadd')?.addEventListener('click', () => {
     const name = ($('qadd-name')?.value || '').trim();
@@ -2917,7 +2915,7 @@
       activeBooking.selectedPassengers.push(newPax);
     }
 
-    $('booking-quick-add-form').hidden = true;
+    const qForm = $('quick-add-pax-box') || $('booking-quick-add-form'); if (qForm) qForm.style.display = 'none';
     $('qadd-name').value = '';
     $('qadd-age').value = '';
     renderBookingPassengerCheckboxes();
@@ -2925,40 +2923,33 @@
 
   // Step Navigation in Booking Modal
   $('btn-booking-proceed')?.addEventListener('click', () => {
-    if (activeBookingStep === 2) {
-      if (!activeBooking.selectedPassengers || activeBooking.selectedPassengers.length === 0) {
-        alert('Please select at least one passenger to continue.');
-        return;
-      }
-      if (activeBooking.selectedPassengers.length > 6) {
-        alert('Maximum 6 passengers allowed per Indian Railways booking.');
-        return;
-      }
-      activeBookingStep = 3;
-      renderBookingStep();
-    } else if (activeBookingStep === 3) {
-      activeBookingStep = 4;
-      renderBookingStep();
-      // Save to booking records
-      saveBookingRecord({
-        id: 'book_' + Date.now(),
-        trainNumber: activeBooking.trainNumber,
-        trainName: activeBooking.trainName,
-        fromCode: activeBooking.fromCode,
-        toCode: activeBooking.toCode,
-        date: activeBooking.date,
-        cls: activeBooking.cls,
-        passengers: activeBooking.selectedPassengers,
-        timestamp: new Date().toISOString()
-      });
+    if (!activeBooking.selectedPassengers || activeBooking.selectedPassengers.length === 0) {
+      alert('Please select at least one passenger to continue.');
+      return;
     }
+    if (activeBooking.selectedPassengers.length > 6) {
+      alert('Maximum 6 passengers allowed per Indian Railways booking.');
+      return;
+    }
+    activeBookingStep = 3;
+    renderBookingStep();
+    // Save to booking records
+    saveBookingRecord({
+      id: 'book_' + Date.now(),
+      trainNumber: activeBooking.trainNumber,
+      trainName: activeBooking.trainName,
+      fromCode: activeBooking.fromCode,
+      toCode: activeBooking.toCode,
+      date: activeBooking.date,
+      cls: activeBooking.cls,
+      passengers: activeBooking.selectedPassengers,
+      timestamp: new Date().toISOString()
+    });
   });
 
   $('btn-booking-back')?.addEventListener('click', () => {
-    if (activeBookingStep > 2) {
-      activeBookingStep -= 1;
-      renderBookingStep();
-    }
+    activeBookingStep = 2;
+    renderBookingStep();
   });
 
   // Copy Passenger Details to Clipboard for fast IRCTC pasting
