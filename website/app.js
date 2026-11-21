@@ -561,7 +561,9 @@
 
     function renderList(list) {
       if (!list || list.length === 0) {
+        dropdown.hidden = true;
         dropdown.classList.remove('open');
+        dropdown.style.display = 'none';
         dropdown.innerHTML = '';
         return;
       }
@@ -576,7 +578,9 @@
         </div>
       `).join('');
 
+      dropdown.hidden = false;
       dropdown.classList.add('open');
+      dropdown.style.display = 'block';
 
       dropdown.querySelectorAll('.autocomplete-item').forEach(item => {
         item.addEventListener('click', () => {
@@ -584,7 +588,9 @@
           const name = item.dataset.name;
           input.value = `${code} — ${name}`;
           input.dataset.code = code;
+          dropdown.hidden = true;
           dropdown.classList.remove('open');
+          dropdown.style.display = 'none';
         });
       });
     }
@@ -592,11 +598,13 @@
     async function searchStations(query) {
       const q = query.trim().toUpperCase();
       if (!q) {
+        dropdown.hidden = true;
         dropdown.classList.remove('open');
+        dropdown.style.display = 'none';
         return;
       }
 
-      // 1. Search local dictionary
+      // 1. Search local dictionary (instant response)
       const localMatches = POPULAR_STATIONS.filter(s =>
         s.code.includes(q) ||
         s.name.toUpperCase().includes(q) ||
@@ -605,13 +613,13 @@
 
       renderList(localMatches);
 
-      // 2. If query >= 2 chars, fetch live server suggestions
-      if (q.length >= 2 && apiBase) {
+      // 2. Fetch live server suggestions (works both with and without apiBase)
+      if (q.length >= 2) {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(async () => {
           try {
             const res = await fetchLive(`/api/stations?q=${encodeURIComponent(q)}`);
-            const serverStations = res?.stations || (Array.isArray(res) ? res : []);
+            const serverStations = res?.data?.stations || res?.data || res?.stations || (Array.isArray(res) ? res : []);
             if (serverStations && serverStations.length > 0) {
               const merged = [...localMatches];
               serverStations.forEach(stn => {
@@ -624,12 +632,11 @@
               renderList(merged.slice(0, 10));
             }
           } catch (_) {}
-        }, 250);
+        }, 150);
       }
     }
 
     input.addEventListener('input', (e) => {
-      // Clear dataset code on manual edit
       input.dataset.code = '';
       searchStations(e.target.value);
     });
@@ -640,7 +647,7 @@
 
     input.addEventListener('keydown', (e) => {
       const items = dropdown.querySelectorAll('.autocomplete-item');
-      if (!items.length || !dropdown.classList.contains('open')) return;
+      if (!items.length || dropdown.hidden || dropdown.style.display === 'none') return;
 
       if (e.key === 'ArrowDown') {
         e.preventDefault();
@@ -656,13 +663,17 @@
           items[activeIndex].click();
         }
       } else if (e.key === 'Escape') {
+        dropdown.hidden = true;
         dropdown.classList.remove('open');
+        dropdown.style.display = 'none';
       }
     });
 
     document.addEventListener('click', (e) => {
       if (!container.contains(e.target)) {
+        dropdown.hidden = true;
         dropdown.classList.remove('open');
+        dropdown.style.display = 'none';
       }
     });
   }
@@ -776,11 +787,19 @@
   }
 
   // Initialize Autocompletes across all tabs
+  // Explicitly wire all station autocomplete inputs
+  ['route-from-input', 'route-to-input', 'seats-from-input', 'seats-to-input', 'fare-from-input', 'fare-to-input'].forEach(id => {
+    const el = $(id);
+    if (el) setupStationAutocomplete(el);
+  });
   document.querySelectorAll('.station-autocomplete').forEach(setupStationAutocomplete);
+
+  // Explicitly wire all train autocomplete inputs
   const liveTrainEl = $('train-number-input') || $('train-input');
   if (liveTrainEl) setupTrainAutocomplete(liveTrainEl, true);
   if ($('seats-train-input')) setupTrainAutocomplete($('seats-train-input'), false);
   if ($('fare-train-input')) setupTrainAutocomplete($('fare-train-input'), false);
+  document.querySelectorAll('.train-autocomplete').forEach(el => setupTrainAutocomplete(el, el.id === 'train-number-input' || el.id === 'train-input'));
 
   // ==========================================================================
   // 1. Render PNR Slip (Full Details with Chart Status Banner)

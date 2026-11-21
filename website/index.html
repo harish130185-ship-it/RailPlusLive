@@ -231,13 +231,14 @@
                       <span class="input-icon">📍</span>
                       <input 
                         id="route-from-input" 
+                        class="station-autocomplete" 
                         type="text" 
                         autocomplete="off" 
                         placeholder="e.g. NDLS (New Delhi) or ADI (Ahmedabad)" 
                         data-i18n-ph="ph_from_station"
                         required 
                       />
-                      <div id="route-from-suggestions" class="autocomplete-dropdown" hidden></div>
+                      <div id="route-from-suggestions" class="autocomplete-dropdown"></div>
                     </div>
                   </div>
 
@@ -256,13 +257,14 @@
                       <span class="input-icon">🏁</span>
                       <input 
                         id="route-to-input" 
+                        class="station-autocomplete" 
                         type="text" 
                         autocomplete="off" 
                         placeholder="e.g. MMCT (Mumbai Central) or LKO (Lucknow)" 
                         data-i18n-ph="ph_to_station"
                         required 
                       />
-                      <div id="route-to-suggestions" class="autocomplete-dropdown" hidden></div>
+                      <div id="route-to-suggestions" class="autocomplete-dropdown"></div>
                     </div>
                   </div>
                 </div>
@@ -360,7 +362,7 @@
                         data-i18n-ph="ph_from_station"
                         required 
                       />
-                      <div id="seats-from-suggestions" class="autocomplete-dropdown" hidden></div>
+                      <div id="seats-from-suggestions" class="autocomplete-dropdown"></div>
                     </div>
                   </div>
 
@@ -383,7 +385,7 @@
                         data-i18n-ph="ph_to_station"
                         required 
                       />
-                      <div id="seats-to-suggestions" class="autocomplete-dropdown" hidden></div>
+                      <div id="seats-to-suggestions" class="autocomplete-dropdown"></div>
                     </div>
                   </div>
                 </div>
@@ -412,7 +414,7 @@
                         placeholder="e.g. 12952 (Optional Filter)" 
                         maxlength="5" 
                       />
-                      <div id="seats-train-suggestions" class="autocomplete-dropdown" hidden></div>
+                      <div id="seats-train-suggestions" class="autocomplete-dropdown"></div>
                     </div>
                   </div>
 
@@ -483,7 +485,7 @@
                         placeholder="e.g. 12952 (Tejas Rajdhani)" 
                         required 
                       />
-                      <div id="train-number-suggestions" class="autocomplete-dropdown" hidden></div>
+                      <div id="train-number-suggestions" class="autocomplete-dropdown"></div>
                     </div>
                     <span class="field-subtext">5-digit train number or partial train name</span>
                   </div>
@@ -532,7 +534,7 @@
                         maxlength="5" 
                         required 
                       />
-                      <div id="fare-train-suggestions" class="autocomplete-dropdown" hidden></div>
+                      <div id="fare-train-suggestions" class="autocomplete-dropdown"></div>
                     </div>
                   </div>
 
@@ -562,7 +564,7 @@
                         data-i18n-ph="ph_from_station"
                         required 
                       />
-                      <div id="fare-from-suggestions" class="autocomplete-dropdown" hidden></div>
+                      <div id="fare-from-suggestions" class="autocomplete-dropdown"></div>
                     </div>
                   </div>
 
@@ -585,7 +587,7 @@
                         data-i18n-ph="ph_to_station"
                         required 
                       />
-                      <div id="fare-to-suggestions" class="autocomplete-dropdown" hidden></div>
+                      <div id="fare-to-suggestions" class="autocomplete-dropdown"></div>
                     </div>
                   </div>
                 </div>
