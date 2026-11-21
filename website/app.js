@@ -343,12 +343,13 @@
     const timer = setTimeout(() => controller.abort(), 14000);
     try {
       const response = await fetch(`${apiBase}${endpoint}`, {
-        method: options.body ? 'POST' : 'GET',
+        method: options.method || (options.body ? 'POST' : 'GET'),
         headers: {
           Accept: 'application/json',
-          ...(options.body ? { 'Content-Type': 'application/json' } : {})
+          ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+          ...(options.headers || {})
         },
-        ...(options.body ? { body: JSON.stringify(options.body) } : {}),
+        ...(options.body ? { body: typeof options.body === 'string' ? options.body : JSON.stringify(options.body) } : {}),
         signal: controller.signal,
         cache: 'no-store'
       });
@@ -1204,11 +1205,27 @@
     return ['SL', '3A', '2A', '1A'];
   }
 
-  function applySeatDataToCard(data, fareEl, statusEl, predEl) {
+  function applySeatDataToCard(data, fareEl, statusEl, predEl, card = null) {
     if (!data) return;
 
-    if (fareEl && data.fare?.total) {
-      fareEl.textContent = `₹${Number(data.fare.total).toLocaleString('en-IN')}`;
+    const totalFare = Number(data.fare?.total || data.fare?.totalFare || 0);
+    if (fareEl && totalFare > 0) {
+      fareEl.textContent = `₹${totalFare.toLocaleString('en-IN')}`;
+    }
+
+    if (card && totalFare > 0) {
+      card.dataset.fare = String(totalFare);
+      const trainCard = card.closest('.train-journey-card');
+      if (trainCard && card.classList.contains('selected')) {
+        trainCard.dataset.selectedFare = String(totalFare);
+        const bookBtn = trainCard.querySelector('.btn-book-train');
+        if (bookBtn) {
+          bookBtn.dataset.fare = String(totalFare);
+          const cls = card.dataset.class;
+          const span = bookBtn.querySelector('span');
+          if (span) span.textContent = `Book ${cls} — ₹${totalFare.toLocaleString('en-IN')} (IRCTC Assist) ➔`;
+        }
+      }
     }
 
     const firstAvail = Array.isArray(data.availability) ? data.availability[0] : null;
@@ -1234,9 +1251,47 @@
       }
 
       if (predEl && firstAvail.prediction) {
-        predEl.textContent = firstAvail.prediction;
+        predEl.textContent = `${firstAvail.prediction} Chance`;
         predEl.hidden = false;
       }
+    }
+  }
+
+  function selectClassOnTrainCard(card) {
+    if (!card) return;
+    const trainCard = card.closest('.train-journey-card');
+    if (!trainCard) return;
+
+    // Remove selected from all sibling cards in this train
+    trainCard.querySelectorAll('.class-card').forEach(c => c.classList.remove('selected', 'active'));
+
+    // Mark clicked card as selected
+    card.classList.add('selected', 'active');
+
+    const cls = card.dataset.class;
+    const trainNo = card.dataset.train;
+    const fromCode = card.dataset.from;
+    const toCode = card.dataset.to;
+    const date = card.dataset.date;
+    const currentFare = Number(card.dataset.fare || 0);
+
+    trainCard.dataset.selectedClass = cls;
+    if (currentFare > 0) trainCard.dataset.selectedFare = String(currentFare);
+
+    const bookBtn = trainCard.querySelector('.btn-book-train');
+    if (bookBtn) {
+      bookBtn.dataset.cls = cls;
+      if (currentFare > 0) bookBtn.dataset.fare = String(currentFare);
+      const span = bookBtn.querySelector('span');
+      if (span) {
+        span.textContent = currentFare > 0
+          ? `Book ${cls} — ₹${currentFare.toLocaleString('en-IN')} (IRCTC Assist) ➔`
+          : `Book ${cls} (IRCTC Assist) ➔`;
+      }
+    }
+
+    if (trainNo && fromCode && toCode && date && cls) {
+      fetchClassSeat(trainNo, fromCode, toCode, date, cls);
     }
   }
 
@@ -1245,9 +1300,10 @@
     const fareEl = document.getElementById(`fare-${trainNo}-${cls}`);
     const statusEl = document.getElementById(`status-${trainNo}-${cls}`);
     const predEl = document.getElementById(`pred-${trainNo}-${cls}`);
+    const cardEl = document.getElementById(`class-${trainNo}-${cls}`) || document.querySelector(`.class-card[data-train="${trainNo}"][data-class="${cls}"]`);
 
     if (routeSeatCache.has(cacheKey)) {
-      applySeatDataToCard(routeSeatCache.get(cacheKey), fareEl, statusEl, predEl);
+      applySeatDataToCard(routeSeatCache.get(cacheKey), fareEl, statusEl, predEl, cardEl);
       return;
     }
 
@@ -1260,7 +1316,7 @@
       const url = `/api/seats?number=${encodeURIComponent(trainNo)}&from=${encodeURIComponent(fromCode)}&to=${encodeURIComponent(toCode)}&date=${encodeURIComponent(date)}&class=${encodeURIComponent(cls)}&quota=GN`;
       const res = await fetchLive(url);
       routeSeatCache.set(cacheKey, res);
-      applySeatDataToCard(res, fareEl, statusEl, predEl);
+      applySeatDataToCard(res, fareEl, statusEl, predEl, cardEl);
     } catch (err) {
       if (statusEl) {
         statusEl.className = 'class-status-text';
@@ -1416,7 +1472,9 @@
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const { train, trainname, from, to, date } = btn.dataset;
-        const heroCls = $('hero-class-select')?.value || '3A';
+        const trainCard = btn.closest('.train-journey-card');
+        const selectedCls = btn.dataset.cls || trainCard?.dataset.selectedClass || $('hero-class-select')?.value || 'SL';
+        const selectedFare = Number(btn.dataset.fare || trainCard?.dataset.selectedFare || 0);
         const heroQuota = $('hero-quota-select')?.value || 'GN';
         openBookingModal({
           trainNumber: train,
@@ -1424,21 +1482,28 @@
           fromCode: from,
           toCode: to,
           date: date,
-          cls: heroCls,
+          cls: selectedCls,
           quota: heroQuota,
-          fare: 0
+          fare: selectedFare
         });
       });
     });
 
-    // Attach click listeners to all class cards
+    // Attach click listeners to all class cards for interactive selection & immediate seat fetch
     document.querySelectorAll('.class-card').forEach(card => {
-      card.addEventListener('click', () => {
-        const { train, from, to, date, cls } = card.dataset;
-        if (train && from && to && date && cls) {
-          fetchClassSeat(train, from, to, date, cls);
-        }
+      card.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectClassOnTrainCard(card);
       });
+    });
+
+    // Automatically select the active travel class for each train card
+    const defaultSearchCls = $('hero-class-select')?.value || 'SL';
+    document.querySelectorAll('.train-journey-card').forEach(tc => {
+      const match = tc.querySelector(`.class-card[data-class="${defaultSearchCls}"]`) || tc.querySelector('.class-card');
+      if (match) {
+        selectClassOnTrainCard(match);
+      }
     });
 
     // Auto-fetch seats for top 2 trains in live mode (with staggering)
@@ -2003,6 +2068,11 @@
       food_none: 'No Food (कोई भोजन नहीं)',
       lbl_pax_nickname: 'Optional Nickname (e.g. Papa, Sister)',
       btn_save_passenger_master: 'Save Passenger Details',
+      btn_login: 'Login',
+      login_modal_title: 'Login to RailPlus',
+      lbl_login_identifier: 'Mobile Number or Email',
+      lbl_login_name: 'Your Name (Optional)',
+      lbl_pax_boarding: 'Preferred Boarding Station',
       saved_passengers_list_title: 'Your Saved Passengers List',
       saved_journeys_title: 'Saved Journeys & Station Master',
       saved_journeys_intro: 'Save frequently used train routes for instantaneous 1-click search.',
@@ -2132,6 +2202,11 @@
       food_none: 'कोई भोजन नहीं (No Food)',
       lbl_pax_nickname: 'उपनाम (वैकल्पिक उदा. पापा, दीदी)',
       btn_save_passenger_master: 'यात्री मास्टर में सेव करें',
+      btn_login: 'लॉगिन',
+      login_modal_title: 'RailPlus लॉगिन',
+      lbl_login_identifier: 'मोबाइल नंबर या ईमेल',
+      lbl_login_name: 'आपका नाम (वैकल्पिक)',
+      lbl_pax_boarding: 'बोर्डिंग स्टेशन (वैकल्पिक)',
       saved_passengers_list_title: 'आपके सेव किए गए यात्री',
       saved_journeys_title: 'सेव यात्राएं एवं स्टेशन मास्टर',
       saved_journeys_intro: 'बार-बार उपयोग होने वाले रूट सेव करें और 1-क्लिक में ट्रेन खोजें।',
@@ -2261,6 +2336,11 @@
       food_none: 'No Food',
       lbl_pax_nickname: 'Optional Nickname (e.g. Papa, Bhai)',
       btn_save_passenger_master: 'Passenger Master me Save Karein',
+      btn_login: 'Login Karein',
+      login_modal_title: 'RailPlus Login',
+      lbl_login_identifier: 'Mobile Number ya Email',
+      lbl_login_name: 'Aapka Name (Optional)',
+      lbl_pax_boarding: 'Boarding Station (Optional)',
       saved_passengers_list_title: 'Aapke Saved Passengers',
       saved_journeys_title: 'Saved Journeys & Station Master',
       saved_journeys_intro: 'Frequently used train routes save karein aur 1-click me train search karein.',
@@ -2432,6 +2512,7 @@
             </div>
             <div style="font-size:0.8rem;color:#475569;margin-top:2px;">
               Age: ${safe(p.age)} • ${safe(genderLabel)} • Berth: ${safe(p.berth || 'No Preference')} • Food: ${safe(p.food || 'None')}
+              ${p.boarding ? `<span style="margin-left:6px;background:#e0f2fe;color:#0369a1;padding:1px 6px;border-radius:4px;font-size:0.75rem;">Boarding: ${safe(p.boarding)}</span>` : ''}
             </div>
           </div>
           <div>
@@ -2466,6 +2547,7 @@
     const berth = $('pm-berth')?.value || 'No Preference';
     const food = $('pm-food')?.value || 'Veg';
     const nickname = ($('pm-nickname')?.value || '').trim();
+    const boarding = ($('pm-boarding')?.value || '').trim().toUpperCase();
 
     if (!name || name.length < 2) {
       alert('Please enter a valid passenger name.');
@@ -2491,6 +2573,7 @@
       berth,
       food,
       nickname,
+      boarding: boarding || null,
       createdAt: new Date().toISOString()
     };
 
@@ -2664,12 +2747,167 @@
   });
 
   // ==========================================================================
+  // RAILPLUS USER AUTHENTICATION & LOGIN (Paytm-Style)
+  // ==========================================================================
+  const USER_PROFILE_KEY = 'RAILPLUS_USER_PROFILE';
+  let activeLoginChallengeToken = '';
+  let activeBookingChallengeToken = '';
+
+  function getUserProfile() {
+    try {
+      const raw = localStorage.getItem(USER_PROFILE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function saveUserProfile(profile) {
+    if (!profile) {
+      localStorage.removeItem(USER_PROFILE_KEY);
+    } else {
+      localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(profile));
+    }
+    updateUserProfileUI();
+  }
+
+  function updateUserProfileUI() {
+    const u = getUserProfile();
+    const label = $('header-user-label');
+    const avatar = $('header-user-avatar');
+    const lang = localStorage.getItem('railplus_lang') || 'en';
+    if (u && label) {
+      const display = u.name ? u.name.split(' ')[0] : (u.emailOrMobile ? u.emailOrMobile.slice(-4) : 'User');
+      label.textContent = display;
+      if (avatar) avatar.textContent = '✅';
+    } else if (label) {
+      label.textContent = lang === 'hi' ? 'लॉगिन' : (lang === 'hinglish' ? 'Login' : 'Login');
+      if (avatar) avatar.textContent = '👤';
+    }
+  }
+
+  async function fetchChallenge(context = 'login') {
+    try {
+      const res = await fetchLive('/api/challenge');
+      if (res && res.token) {
+        if (context === 'login') {
+          activeLoginChallengeToken = res.token;
+          if ($('login-challenge-display')) $('login-challenge-display').textContent = res.display;
+          if ($('login-challenge-answer')) $('login-challenge-answer').value = '';
+        } else {
+          activeBookingChallengeToken = res.token;
+          if ($('booking-challenge-display')) $('booking-challenge-display').textContent = res.display;
+          if ($('booking-challenge-answer')) $('booking-challenge-answer').value = '';
+          if ($('challenge-status-badge')) {
+            $('challenge-status-badge').textContent = 'Solve math challenge';
+            $('challenge-status-badge').style.color = '#0284c7';
+          }
+        }
+      }
+    } catch (_) {}
+  }
+
+  function openLoginModal() {
+    const modal = $('railplus-login-modal');
+    if (!modal) return;
+    modal.hidden = false;
+    modal.style.display = 'flex';
+    const u = getUserProfile();
+    if (u) {
+      if ($('login-identifier-input')) $('login-identifier-input').value = u.emailOrMobile || '';
+      if ($('login-name-input')) $('login-name-input').value = u.name || '';
+      if ($('login-irctc-username')) $('login-irctc-username').value = u.irctcUsername || '';
+    }
+    fetchChallenge('login');
+  }
+
+  function closeLoginModal() {
+    const modal = $('railplus-login-modal');
+    if (!modal) return;
+    modal.hidden = true;
+    modal.style.display = 'none';
+    if ($('login-error-msg')) $('login-error-msg').style.display = 'none';
+  }
+
+  $('btn-header-login')?.addEventListener('click', () => {
+    const u = getUserProfile();
+    if (u) {
+      openDashboardModal();
+    } else {
+      openLoginModal();
+    }
+  });
+
+  $('btn-close-login-modal')?.addEventListener('click', closeLoginModal);
+  $('railplus-login-modal')?.addEventListener('click', (e) => {
+    if (e.target === $('railplus-login-modal')) closeLoginModal();
+  });
+
+  $('railplus-login-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errMsgEl = $('login-error-msg');
+    if (errMsgEl) errMsgEl.style.display = 'none';
+
+    const identifier = ($('login-identifier-input')?.value || '').trim();
+    const name = ($('login-name-input')?.value || '').trim();
+    const irctcUser = ($('login-irctc-username')?.value || '').trim();
+    const ans = ($('login-challenge-answer')?.value || '').trim();
+
+    if (!identifier) {
+      if (errMsgEl) { errMsgEl.textContent = 'Please enter mobile or email.'; errMsgEl.style.display = 'block'; }
+      return;
+    }
+    if (!ans) {
+      if (errMsgEl) { errMsgEl.textContent = 'Please answer the security math question.'; errMsgEl.style.display = 'block'; }
+      return;
+    }
+
+    try {
+      // 1. Verify challenge
+      const vRes = await fetchLive('/api/challenge/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: activeLoginChallengeToken, answer: ans })
+      });
+      if (!vRes?.verified) {
+        throw new Error('Incorrect security math answer. Please try again.');
+      }
+
+      // 2. Perform safe login (IRCTC username only, NO password)
+      const loginRes = await fetchLive('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          emailOrMobile: identifier,
+          name: name || undefined,
+          irctcUsername: irctcUser || undefined
+        })
+      });
+
+      if (loginRes?.success && loginRes?.user) {
+        saveUserProfile(loginRes.user);
+        closeLoginModal();
+        notify('Logged in successfully! Your profile & IRCTC ID are ready for fast booking.');
+      } else {
+        throw new Error(loginRes?.message || 'Login failed');
+      }
+    } catch (err) {
+      if (errMsgEl) {
+        errMsgEl.textContent = err.message || 'Login failed. Please try again.';
+        errMsgEl.style.display = 'block';
+      }
+      fetchChallenge('login');
+    }
+  });
+
+  // ==========================================================================
   // USER DASHBOARD MODAL
   // ==========================================================================
   function updateDashboardStats() {
     const paxCount = getSavedPassengers().length;
     const routesCount = getSavedJourneys().length;
     const bookingCount = getBookingHistory().length;
+    const u = getUserProfile();
 
     const elPax = $('stat-passengers-count') || $('dash-stat-passengers');
     const elRoutes = $('stat-journeys-count') || $('dash-stat-routes');
@@ -2677,6 +2915,47 @@
     if (elPax) elPax.textContent = String(paxCount);
     if (elRoutes) elRoutes.textContent = String(routesCount);
     if (elBookings) elBookings.textContent = String(bookingCount);
+
+    let profileBox = $('dashboard-user-profile-banner');
+    if (!profileBox) {
+      profileBox = document.createElement('div');
+      profileBox.id = 'dashboard-user-profile-banner';
+      profileBox.style.cssText = 'background:var(--bg-card-subtle);border:1px solid var(--border-light);border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;';
+      const statsGrid = document.querySelector('.dashboard-grid-stats');
+      if (statsGrid && statsGrid.parentNode) {
+        statsGrid.parentNode.insertBefore(profileBox, statsGrid);
+      }
+    }
+
+    if (u) {
+      profileBox.innerHTML = `
+        <div>
+          <div style="font-weight:700;color:var(--text-main);font-size:0.95rem;">👤 ${safe(u.name || u.emailOrMobile)}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);">${safe(u.emailOrMobile)} ${u.irctcUsername ? `• IRCTC ID: <strong style="color:#0284c7;">${safe(u.irctcUsername)}</strong>` : '• IRCTC ID: None'}</div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button type="button" id="btn-dash-edit-profile" style="background:#f1f5f9;border:1px solid #cbd5e1;border-radius:6px;padding:4px 10px;font-size:0.75rem;cursor:pointer;font-weight:600;">Edit</button>
+          <button type="button" id="btn-dash-logout" style="background:#fee2e2;color:#b91c1c;border:none;border-radius:6px;padding:4px 10px;font-size:0.75rem;cursor:pointer;font-weight:600;">Logout</button>
+        </div>
+      `;
+      $('btn-dash-edit-profile')?.addEventListener('click', () => { closeDashboardModal(); openLoginModal(); });
+      $('btn-dash-logout')?.addEventListener('click', () => {
+        if (confirm('Logout from RailPlus?')) {
+          saveUserProfile(null);
+          closeDashboardModal();
+          notify('Logged out successfully.');
+        }
+      });
+    } else {
+      profileBox.innerHTML = `
+        <div>
+          <div style="font-weight:700;color:var(--text-main);font-size:0.9rem;">Sign in to save IRCTC ID &amp; sync passengers</div>
+          <div style="font-size:0.72rem;color:var(--text-muted);">Paytm-style fast 1-click booking handoff</div>
+        </div>
+        <button type="button" id="btn-dash-login-now" class="btn-search-saved-route" style="padding:5px 14px;font-size:0.78rem;">Login</button>
+      `;
+      $('btn-dash-login-now')?.addEventListener('click', () => { closeDashboardModal(); openLoginModal(); });
+    }
   }
 
   function openDashboardModal() {
@@ -2879,6 +3158,7 @@
 
     const count = activeBooking.selectedPassengers.length;
     const estFare = activeBooking.farePerPax > 0 ? (activeBooking.farePerPax * count) : null;
+    const u = getUserProfile();
 
     reviewEl.innerHTML = `
       <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px;">
@@ -2893,18 +3173,28 @@
         <div style="background:#f8fafc;padding:10px;border-radius:6px;margin-bottom:12px;">
           ${activeBooking.selectedPassengers.map((p, idx) => `
             <div style="font-size:0.85rem;padding:4px 0;border-bottom:1px dashed #e2e8f0;">
-              ${idx + 1}. <strong>${safe(p.name)}</strong> (${safe(p.age)}, ${safe(p.gender)}) — Berth: ${safe(p.berth || 'None')}, Food: ${safe(p.food || 'None')}
+              ${idx + 1}. <strong>${safe(p.name)}</strong> (${safe(p.age)}, ${safe(p.gender)}) — Berth: ${safe(p.berth || 'None')}, Food: ${safe(p.food || 'None')}${p.boarding ? `, Boarding: ${safe(p.boarding)}` : ''}
             </div>
           `).join('')}
         </div>
         ${estFare ? `
           <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid #cbd5e1;font-weight:700;color:#0f294a;">
             <span>Estimated Total Fare (${count} Pax):</span>
-            <span style="color:#16a34a;font-size:1.15rem;">₹${estFare}</span>
+            <span style="color:#16a34a;font-size:1.15rem;">₹${estFare.toLocaleString('en-IN')}</span>
           </div>
         ` : ''}
       </div>
     `;
+
+    // Display saved IRCTC user ID
+    const irctcUserEl = $('booking-review-irctc-user');
+    if (irctcUserEl) {
+      irctcUserEl.textContent = u?.irctcUsername ? u.irctcUsername : 'Not set (Optional)';
+      irctcUserEl.style.color = u?.irctcUsername ? '#0369a1' : '#64748b';
+    }
+
+    // Load server-validated math challenge for human verification
+    fetchChallenge('booking');
   }
 
   // Quick Add Passenger inside Booking Modal
@@ -2919,8 +3209,10 @@
   $('btn-save-qadd')?.addEventListener('click', () => {
     const name = ($('qadd-name')?.value || '').trim();
     const age = Number($('qadd-age')?.value || 0);
-    const gender = $('qadd-gender')?.value || 'M';
+    const gender = $('qadd-gender')?.value || 'Male';
     const berth = $('qadd-berth')?.value || 'No Preference';
+    const food = $('qadd-food')?.value || 'Veg';
+    const boarding = ($('qadd-boarding')?.value || '').trim().toUpperCase();
 
     if (!name || name.length < 2) {
       alert('Please enter a valid name.');
@@ -2938,7 +3230,8 @@
       age,
       gender,
       berth,
-      food: 'Veg',
+      food,
+      boarding: boarding || null,
       createdAt: new Date().toISOString()
     };
     saved.push(newPax);
@@ -2949,9 +3242,56 @@
     }
 
     const qForm = $('quick-add-pax-box') || $('booking-quick-add-form'); if (qForm) qForm.style.display = 'none';
-    $('qadd-name').value = '';
-    $('qadd-age').value = '';
+    if ($('qadd-name')) $('qadd-name').value = '';
+    if ($('qadd-age')) $('qadd-age').value = '';
+    if ($('qadd-boarding')) $('qadd-boarding').value = '';
     renderBookingPassengerCheckboxes();
+  });
+
+  // Verify Booking Security Challenge
+  $('btn-verify-booking-challenge')?.addEventListener('click', async () => {
+    const ans = ($('booking-challenge-answer')?.value || '').trim();
+    const badge = $('challenge-status-badge');
+    if (!ans) {
+      if (badge) { badge.textContent = 'Enter answer'; badge.style.color = '#dc2626'; }
+      return;
+    }
+    try {
+      const v = await fetchLive('/api/challenge/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: activeBookingChallengeToken, answer: ans })
+      });
+      if (v?.verified) {
+        if (badge) { badge.textContent = 'Verified ✓'; badge.style.color = '#15803d'; }
+      } else {
+        throw new Error();
+      }
+    } catch {
+      if (badge) { badge.textContent = 'Incorrect ✗'; badge.style.color = '#dc2626'; }
+      fetchChallenge('booking');
+    }
+  });
+
+  // Quick edit IRCTC username in booking review
+  $('btn-edit-irctc-username')?.addEventListener('click', () => {
+    const u = getUserProfile() || { emailOrMobile: 'Guest Traveler', name: 'Guest' };
+    const curr = u.irctcUsername || '';
+    const entered = prompt('Enter your IRCTC User ID (Username only, NEVER enter password):', curr);
+    if (entered !== null) {
+      const clean = entered.trim();
+      if (clean && !/^[a-zA-Z0-9_]{3,30}$/.test(clean)) {
+        alert('Invalid IRCTC Username. Must be 3-30 letters/numbers with no spaces.');
+        return;
+      }
+      u.irctcUsername = clean || null;
+      saveUserProfile(u);
+      const irctcUserEl = $('booking-review-irctc-user');
+      if (irctcUserEl) {
+        irctcUserEl.textContent = u.irctcUsername ? u.irctcUsername : 'Not set (Optional)';
+        irctcUserEl.style.color = u.irctcUsername ? '#0369a1' : '#64748b';
+      }
+    }
   });
 
   // Step Navigation in Booking Modal
@@ -2985,19 +3325,38 @@
     renderBookingStep();
   });
 
-  // Copy Passenger Details to Clipboard for fast IRCTC pasting
+  // Copy Complete Journey Details to Clipboard for fast IRCTC pasting
   $('btn-copy-pax-clipboard')?.addEventListener('click', async () => {
     if (!activeBooking || !activeBooking.selectedPassengers.length) return;
-    const txt = activeBooking.selectedPassengers.map((p, i) => 
-      `Passenger ${i+1}: ${p.name}, Age: ${p.age}, Gender: ${p.gender}, Berth: ${p.berth || 'No Preference'}`
-    ).join('\\n');
+    const u = getUserProfile();
+    const count = activeBooking.selectedPassengers.length;
+    const estFare = activeBooking.farePerPax > 0 ? (activeBooking.farePerPax * count) : null;
+
+    const summaryLines = [
+      '==========================================',
+      '       RAILPLUS SMART BOOKING SUMMARY     ',
+      '==========================================',
+      `Train: ${activeBooking.trainNumber} — ${activeBooking.trainName}`,
+      `Route: ${activeBooking.fromCode} ➔ ${activeBooking.toCode}`,
+      `Date: ${formatToDDMMYYYY(activeBooking.date)} | Class: ${activeBooking.cls} | Quota: ${activeBooking.quota}`,
+      estFare ? `Estimated Fare: ₹${estFare} (${count} Pax)` : '',
+      `IRCTC User ID: ${u?.irctcUsername || 'Not specified'}`,
+      '------------------------------------------',
+      'PASSENGERS:',
+      ...activeBooking.selectedPassengers.map((p, i) => 
+        `${i + 1}. ${p.name} (Age: ${p.age}, ${p.gender}) | Berth: ${p.berth || 'No Preference'} | Food: ${p.food || 'None'}${p.boarding ? ' | Boarding: ' + p.boarding : ''}`
+      ),
+      '------------------------------------------',
+      'Complete booking and payment directly on https://www.irctc.co.in',
+      '=========================================='
+    ].filter(Boolean).join('\n');
 
     try {
-      await navigator.clipboard.writeText(txt);
+      await navigator.clipboard.writeText(summaryLines);
       const btn = $('btn-copy-pax-clipboard');
       if (btn) {
         const orig = btn.innerHTML;
-        btn.innerHTML = 'Copied to Clipboard! ✓';
+        btn.innerHTML = 'Journey Details Copied! ✓';
         btn.style.background = '#15803d';
         setTimeout(() => {
           btn.innerHTML = orig;
@@ -3005,13 +3364,27 @@
         }, 2500);
       }
     } catch (_) {
-      alert('Passenger Details:\\n\\n' + txt);
+      alert(summaryLines);
     }
   });
 
-  // Proceed to Official IRCTC Button
-  $('btn-proceed-irctc-portal')?.addEventListener('click', () => {
-    window.open('https://www.irctc.co.in/nget/booking/train-list', '_blank', 'noopener,noreferrer');
+  // Launch IRCTC portal handler
+  $('btn-launch-irctc')?.addEventListener('click', () => {
+    // Save to booking records
+    if (activeBooking) {
+      saveBookingRecord({
+        id: 'book_' + Date.now(),
+        trainNumber: activeBooking.trainNumber,
+        trainName: activeBooking.trainName,
+        fromCode: activeBooking.fromCode,
+        toCode: activeBooking.toCode,
+        date: activeBooking.date,
+        cls: activeBooking.cls,
+        passengers: activeBooking.selectedPassengers,
+        status: 'Assisted - Handed to IRCTC',
+        timestamp: new Date().toISOString()
+      });
+    }
   });
 
   // ==========================================================================
@@ -3049,5 +3422,8 @@
     switchTab('train');
     $('train-number-input')?.focus();
   });
+
+  // Initialize Paytm-style user profile UI
+  updateUserProfileUI();
 
 })();

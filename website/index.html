@@ -121,9 +121,15 @@
           <span data-i18n="btn_install_app">Install App</span>
         </button>
 
+        <!-- User Login Button (Paytm-style) -->
+        <button type="button" id="btn-header-login" class="header-action-btn user-login-btn" title="RailPlus Account" aria-label="RailPlus Account">
+          <span id="header-user-avatar">👤</span>
+          <span id="header-user-label" class="desktop-only-text" data-i18n="btn_login">Login</span>
+        </button>
+
         <!-- User Dashboard Button -->
         <button type="button" id="btn-open-dashboard" class="header-action-btn dashboard-icon-btn" title="User Dashboard" aria-label="Open User Dashboard">
-          <span>👤</span>
+          <span>⚙️</span>
           <span class="desktop-only-text" data-i18n="btn_dashboard">Dashboard</span>
         </button>
 
@@ -737,6 +743,12 @@
                 <option value="Side Upper">Side Upper</option>
                 <option value="Window Seat">Window Seat</option>
               </select>
+              <select id="qadd-food" style="padding:6px 10px;border:1px solid var(--border-light);border-radius:4px;">
+                <option value="Veg">Vegetarian (शाकाहारी)</option>
+                <option value="NonVeg">Non-Vegetarian (मांसाहारी)</option>
+                <option value="NoFood">No Food (कोई भोजन नहीं)</option>
+              </select>
+              <input id="qadd-boarding" type="text" placeholder="Boarding Stn (Optional)" style="padding:6px 10px;border:1px solid var(--border-light);border-radius:4px;text-transform:uppercase;" />
             </div>
             <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px;">
               <button type="button" id="btn-cancel-qadd" class="filter-pill" data-i18n="btn_cancel">Cancel</button>
@@ -751,16 +763,47 @@
             <!-- Review Details -->
           </div>
 
+          <!-- Paytm-style Saved IRCTC User Bar -->
+          <div style="margin:12px 0;padding:10px 14px;background:#f0f9ff;border-radius:8px;border:1px solid #bae6fd;display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <div style="font-size:0.72rem;color:#0284c7;font-weight:700;letter-spacing:0.5px;">IRCTC USER ID (PRE-FILL ASSIST)</div>
+              <div id="booking-review-irctc-user" style="font-size:0.95rem;font-weight:700;color:#0f172a;">Not saved (Optional)</div>
+            </div>
+            <button type="button" id="btn-edit-irctc-username" style="background:#fff;border:1px solid #0284c7;color:#0284c7;border-radius:6px;padding:4px 10px;font-size:0.75rem;font-weight:600;cursor:pointer;">
+              ✏️ Set IRCTC ID
+            </button>
+          </div>
+
+          <!-- RailPlus Human Verification Challenge (Server Validated) -->
+          <div id="booking-challenge-box" style="margin:12px 0;padding:12px;background:var(--bg-card-subtle);border:1px solid var(--border-light);border-radius:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <span style="font-size:0.8rem;font-weight:700;color:var(--text-main);">🔒 RailPlus Security Verification</span>
+              <span id="challenge-status-badge" style="font-size:0.72rem;color:#0284c7;font-weight:600;">Server-Validated</span>
+            </div>
+            <p style="font-size:0.72rem;color:var(--text-muted);margin:0 0 8px 0;">
+              Simple arithmetic challenge for RailPlus anti-bot protection. (Never replaces or bypasses IRCTC official verification).
+            </p>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span id="booking-challenge-display" style="padding:6px 12px;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:6px;font-weight:700;font-family:monospace;font-size:1rem;color:#0f172a;">
+                ...
+              </span>
+              <input type="number" id="booking-challenge-answer" placeholder="Ans" style="width:75px;padding:6px 8px;border:1px solid var(--border-light);border-radius:6px;text-align:center;font-weight:700;background:var(--bg-card);" />
+              <button type="button" id="btn-verify-booking-challenge" class="btn-search-saved-route" style="padding:6px 14px;font-size:0.8rem;">
+                Verify
+              </button>
+            </div>
+          </div>
+
           <div class="irctc-handoff-banner">
             <h4 data-i18n="irctc_assist_heading">Ready for IRCTC Booking</h4>
             <p data-i18n="irctc_assist_desc">
-              RailPlus has organized and validated your journey and passenger data. Click below to copy your passenger list and proceed directly to the official IRCTC portal to complete reservation and secure payment.
+              RailPlus has organized and validated your journey and passenger data. Click below to copy your complete journey details and proceed directly to the official IRCTC portal to complete reservation and secure payment.
             </p>
             <div class="handoff-actions">
               <button type="button" id="btn-copy-pax-clipboard" class="btn-copy-passenger-details">
-                📋 <span data-i18n="btn_copy_pax">Copy Passenger Details</span>
+                📋 <span data-i18n="btn_copy_pax">Copy Journey Details</span>
               </button>
-              <a href="https://www.irctc.co.in/nget/booking/train-list" target="_blank" rel="noopener noreferrer" id="btn-launch-irctc" class="btn-proceed-irctc">
+              <a href="https://www.irctc.co.in/nget/train-search" target="_blank" rel="noopener noreferrer" id="btn-launch-irctc" class="btn-proceed-irctc">
                 <span>🚀</span> <span data-i18n="btn_proceed_irctc">Proceed to Official IRCTC (irctc.co.in) ➔</span>
               </a>
             </div>
@@ -835,9 +878,15 @@
               </div>
             </div>
 
-            <div>
-              <label class="field-label" data-i18n="lbl_pax_nickname">Optional Nickname / Relationship</label>
-              <input id="pm-nickname" type="text" placeholder="e.g. Papa, Sister, Friend" style="width:100%;padding:8px 12px;border:1px solid var(--border-light);border-radius:6px;background:var(--bg-card);" />
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div>
+                <label class="field-label" data-i18n="lbl_pax_nickname">Optional Nickname</label>
+                <input id="pm-nickname" type="text" placeholder="e.g. Papa, Sister, Friend" style="width:100%;padding:8px 12px;border:1px solid var(--border-light);border-radius:6px;background:var(--bg-card);" />
+              </div>
+              <div>
+                <label class="field-label" data-i18n="lbl_pax_boarding">Preferred Boarding Station</label>
+                <input id="pm-boarding" type="text" placeholder="e.g. ST (Surat)" style="width:100%;padding:8px 12px;border:1px solid var(--border-light);border-radius:6px;background:var(--bg-card);text-transform:uppercase;" />
+              </div>
             </div>
 
             <div style="display:flex;justify-content:flex-end;margin-top:6px;">
@@ -968,6 +1017,74 @@
             <span class="dash-arrow">➔</span>
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. RailPlus Paytm-Style User Login Modal -->
+  <div id="railplus-login-modal" class="dashboard-modal-overlay" hidden>
+    <div class="dashboard-modal-card" style="max-width:440px;">
+      <div class="modal-header-irctc">
+        <h3>
+          <span>👤</span>
+          <span data-i18n="login_modal_title">Login to RailPlus</span>
+        </h3>
+        <button type="button" id="btn-close-login-modal" class="modal-close-btn" aria-label="Close">✕</button>
+      </div>
+
+      <div class="modal-body-scroll">
+        <div style="text-align:center;margin-bottom:16px;">
+          <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;background:rgba(2,132,199,0.1);border-radius:50%;margin-bottom:8px;font-size:1.5rem;">
+            🚆
+          </div>
+          <h4 style="margin:0;font-size:1.05rem;color:var(--text-main);">Paytm-Style Smart Travel Account</h4>
+          <p style="margin:4px 0 0 0;font-size:0.78rem;color:var(--text-muted);line-height:1.4;">
+            Save co-passengers, favorite routes, and your IRCTC username for fast 1-click booking handoff.
+          </p>
+        </div>
+
+        <form id="railplus-login-form" style="display:flex;flex-direction:column;gap:12px;">
+          <div>
+            <label class="field-label" data-i18n="lbl_login_identifier">Mobile Number or Email</label>
+            <input type="text" id="login-identifier-input" required placeholder="e.g. 9876543210 or user@example.com" style="width:100%;padding:9px 12px;border:1px solid var(--border-light);border-radius:8px;background:var(--bg-card);font-size:0.9rem;" />
+            <span style="font-size:0.7rem;color:var(--text-muted);">Enter 10-digit Indian mobile number or email</span>
+          </div>
+
+          <div>
+            <label class="field-label" data-i18n="lbl_login_name">Your Name (Optional)</label>
+            <input type="text" id="login-name-input" placeholder="e.g. Rahul Sharma" style="width:100%;padding:9px 12px;border:1px solid var(--border-light);border-radius:8px;background:var(--bg-card);font-size:0.9rem;" />
+          </div>
+
+          <div style="background:rgba(234,88,12,0.06);border:1px dashed #fdba74;border-radius:8px;padding:10px 12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <label class="field-label" style="margin:0;color:#c2410c;font-weight:700;">IRCTC User ID (Optional)</label>
+              <span style="font-size:0.65rem;background:#ffedd5;color:#9a3412;padding:1px 6px;border-radius:4px;font-weight:600;">Username Only</span>
+            </div>
+            <input type="text" id="login-irctc-username" placeholder="e.g. rahul_rail12" style="width:100%;padding:8px 10px;border:1px solid #fed7aa;border-radius:6px;background:#fff;font-size:0.88rem;" />
+            <p style="margin:4px 0 0 0;font-size:0.7rem;color:#7c2d12;line-height:1.3;">
+              🔒 <strong>Security Guarantee:</strong> We only save your IRCTC username for fast copy/handoff. We NEVER ask for, accept, or store your IRCTC password, OTP, or PIN.
+            </p>
+          </div>
+
+          <!-- Human Verification arithmetic in login -->
+          <div id="login-challenge-container" style="background:var(--bg-card-subtle);border:1px solid var(--border-light);border-radius:8px;padding:10px 12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <label class="field-label" style="margin:0;font-size:0.75rem;">🔒 Security Verification</label>
+              <span style="font-size:0.68rem;color:#0284c7;font-weight:600;">Server Check</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span id="login-challenge-display" style="font-family:monospace;font-weight:700;font-size:0.95rem;padding:5px 10px;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:4px;color:#0f172a;">...</span>
+              <input type="number" id="login-challenge-answer" required placeholder="Ans" style="width:70px;padding:6px 8px;border:1px solid var(--border-light);border-radius:6px;text-align:center;font-weight:700;background:var(--bg-card);" />
+              <span style="font-size:0.72rem;color:var(--text-muted);">(Type result)</span>
+            </div>
+          </div>
+
+          <div id="login-error-msg" style="display:none;color:#dc2626;background:#fee2e2;padding:8px 12px;border-radius:6px;font-size:0.8rem;"></div>
+
+          <button type="submit" id="btn-submit-login" class="submit-button" style="width:100%;height:40px;margin-top:4px;font-size:0.9rem;font-weight:700;">
+            Continue to RailPlus ➔
+          </button>
+        </form>
       </div>
     </div>
   </div>

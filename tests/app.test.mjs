@@ -172,3 +172,88 @@ test('static site loads and API errors do not leak credentials', async () => {
     assert.equal(resp.headers.get('cache-control'),'private, no-store, max-age=0');
   });
 });
+
+test('arithmetic human verification challenge generates and validates server-side', async () => {
+  await withServer({}, async url => {
+    const chResp = await fetch(`${url}/api/challenge`);
+    assert.equal(chResp.status, 200);
+    const chData = await chResp.json();
+    assert.equal(chData.success, true);
+    assert.ok(chData.question);
+    assert.ok(chData.token);
+
+    // Compute expected answer from question e.g. "8 + 3" or "10 - 4"
+    const [a, op, b] = chData.question.split(' ');
+    const ans = op === '+' ? Number(a) + Number(b) : Number(a) - Number(b);
+
+    // Verify correct answer
+    const vResp = await fetch(`${url}/api/challenge/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: chData.token, answer: ans })
+    });
+    assert.equal(vResp.status, 200);
+    const vData = await vResp.json();
+    assert.equal(vData.verified, true);
+
+    // Verify wrong answer gets rejected
+    const badResp = await fetch(`${url}/api/challenge/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: chData.token, answer: ans + 99 })
+    });
+    assert.equal(badResp.status, 400);
+  });
+});
+
+test('auth/login stores IRCTC username only and rejects any password/OTP', async () => {
+  await withServer({}, async url => {
+    // 1. Password rejection (security requirement)
+    const leakAttempt = await fetch(`${url}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ emailOrMobile: '9876543210', irctcUsername: 'raj123', password: 'secretpassword' })
+    });
+    assert.equal(leakAttempt.status, 400);
+    assert.match((await leakAttempt.json()).message, /सुरक्षा चेतावनी/);
+
+    // 2. Valid mobile login with optional IRCTC username
+    const validLogin = await fetch(`${url}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ emailOrMobile: '9876543210', name: 'Raj Kumar', irctcUsername: 'raj_rail' })
+    });
+    assert.equal(validLogin.status, 200);
+    const loginData = await validLogin.json();
+    assert.equal(loginData.success, true);
+    assert.equal(loginData.user.irctcUsername, 'raj_rail');
+    assert.equal(loginData.user.emailOrMobile, '9876543210');
+  });
+});
+
+test('modular IRCTC gateway reports integration status and prepares booking assistance', async () => {
+  await withServer({}, async url => {
+    const statusResp = await fetch(`${url}/api/integration/status`);
+    assert.equal(statusResp.status, 200);
+    const status = await statusResp.json();
+    assert.equal(status.mode, 'BOOKING_ASSISTANCE');
+
+    const assistResp = await fetch(`${url}/api/booking/assist`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        trainNumber: '12951',
+        fromCode: 'NDLS',
+        toCode: 'MMCT',
+        date: '2026-11-25',
+        cls: '3A',
+        passengers: [{ name: 'Test Traveler', age: 28, gender: 'M', berth: 'Lower' }]
+      })
+    });
+    assert.equal(assistResp.status, 200);
+    const assistData = await assistResp.json();
+    assert.equal(assistData.mode, 'BOOKING_ASSISTANCE');
+    assert.equal(assistData.bookingPayload.trainNumber, '12951');
+    assert.equal(assistData.bookingPayload.passengers[0].berth, 'Lower');
+  });
+});
