@@ -2,64 +2,73 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0f294a" />
-  <meta name="description" content="RailPlus — IRCTC-inspired Indian Railway ticket booking assistance, live train running status, PNR enquiry, seat availability and fare lookup." />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="RailPlus" />
-  <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-  <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="stylesheet" href="styles.css?v=17.0" />
+  <meta name="description" content="RailPlus — IRCTC-inspired Indian Railway Booking Assistance, PNR Status, Seat Availability & Live Train Tracking" />
   <title>RailPlus — IRCTC-Inspired Indian Railway Ticket Booking &amp; Live Enquiry</title>
+  
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
+
+  <!-- Google Fonts for crisp typography (Inter & Hindi Noto Sans) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css?v=20.0" />
 </head>
 <body>
-  <!-- Manual Install Guide Modal (Shown only if user clicks Install and browser doesn't support automatic prompt) -->
+
+  <!-- PWA Manual Guide Modal (Only shown if user explicitly clicks install on an unsupported browser) -->
   <div id="pwa-guide-modal" class="pwa-modal-overlay" hidden>
     <div class="pwa-modal-card">
       <div class="pwa-modal-header">
-        <div class="pwa-modal-title">
+        <div class="pwa-brand-icon">
           <img src="logo.png" alt="RailPlus" style="width:28px;height:28px;object-fit:contain;background:#ffffff;border-radius:4px;padding:2px;" />
-          <h3 data-i18n="install_app_title">Install RailPlus App</h3>
         </div>
-        <button type="button" id="btn-close-pwa-modal" class="pwa-modal-close" aria-label="Close">✕</button>
+        <h3 data-i18n="install_app_title">Install RailPlus App</h3>
+        <button type="button" id="btn-close-pwa-modal" class="modal-close-btn" aria-label="Close">✕</button>
       </div>
       <div class="pwa-modal-body">
-        <div class="install-guide-step">
-          <div class="step-num">1</div>
-          <div class="step-text">
-            <strong data-i18n="install_step_1_title">Open Browser Menu</strong>
-            <p data-i18n="install_step_1_desc">Tap the <strong>3 dots (⋮)</strong> menu in Chrome or the <strong>Share (⎋)</strong> button in Safari.</p>
+        <p style="font-size:0.9rem;color:var(--text-muted);margin-bottom:16px;">
+          Install RailPlus on your phone or computer for fast, one-tap access:
+        </p>
+        <div class="pwa-instruction-steps">
+          <div class="step-item">
+            <div class="step-num">1</div>
+            <div class="step-text">
+              <strong data-i18n="install_step_1_title">Open Browser Menu</strong>
+              <p data-i18n="install_step_1_desc">Tap the three dots (⋮) in Chrome or the Share button in Safari.</p>
+            </div>
           </div>
-        </div>
-        <div class="install-guide-step">
-          <div class="step-num">2</div>
-          <div class="step-text">
-            <strong data-i18n="install_step_2_title">Select 'Install app' or 'Add to Home screen'</strong>
-            <p data-i18n="install_step_2_desc">Choose <strong>"Install app"</strong> or <strong>"Add to Home Screen"</strong> from the menu options.</p>
+          <div class="step-item">
+            <div class="step-num">2</div>
+            <div class="step-text">
+              <strong data-i18n="install_step_2_title">Select Install or Add to Home</strong>
+              <p data-i18n="install_step_2_desc">Choose "Install RailPlus" or "Add to Home Screen".</p>
+            </div>
           </div>
-        </div>
-        <div class="install-guide-step">
-          <div class="step-num">3</div>
-          <div class="step-text">
-            <strong data-i18n="install_step_3_title">Confirm Installation</strong>
-            <p data-i18n="install_step_3_desc">Tap <strong>"Install"</strong> to add the RailPlus app to your mobile home screen.</p>
+          <div class="step-item">
+            <div class="step-num">3</div>
+            <div class="step-text">
+              <strong data-i18n="install_step_3_title">Enjoy Native App Experience</strong>
+              <p data-i18n="install_step_3_desc">Launch RailPlus directly from your home screen.</p>
+            </div>
           </div>
         </div>
       </div>
       <div class="pwa-modal-footer">
-        <button type="button" id="btn-understood-pwa" class="submit-button" style="width:100%;height:44px;" data-i18n="btn_got_it">Got It</button>
+        <button type="button" id="btn-understood-pwa" class="submit-button" style="height:38px;padding:0 24px;" data-i18n="btn_got_it">Got it</button>
       </div>
     </div>
   </div>
 
-  <!-- Header / Navigation -->
-  <header class="app-header">
-    <div class="header-container">
+  <!-- Main Website Header (Navy Blue & Orange IRCTC Theme) -->
+  <header class="site-header">
+    <div class="header-inner">
       <div class="header-brand">
-        <a href="#home" class="logo-link" id="brand-logo-btn" title="RailPlus — Home">
+        <a href="#home" class="logo-link" id="brand-logo-btn" title="RailPlus — Home / Reset">
           <div class="logo-symbol">
             <img src="logo.png" alt="RailPlus Logo" class="brand-logo-img" />
           </div>
@@ -70,206 +79,526 @@
         </a>
       </div>
 
-      <!-- Desktop Navigation Menu -->
+      <!-- Navigation Links -->
       <nav class="header-nav-links" aria-label="Main Navigation">
-        <a href="#home" class="nav-link-btn active" id="nav-btn-home">
-          <span>🚆</span>
-          <span data-i18n="nav_train_search">Train Booking</span>
+        <a href="#pnr" id="nav-pnr" class="nav-item">
+          <span>🎫</span> <span data-i18n="nav_pnr">PNR Status</span>
         </a>
-        <a href="#pnr" class="nav-link-btn" id="nav-btn-pnr">
-          <span>🎫</span>
-          <span data-i18n="nav_pnr">PNR Status</span>
+        <a href="#search" id="nav-train-search" class="nav-item">
+          <span>🚆</span> <span data-i18n="nav_train_search">Train Search</span>
         </a>
-        <a href="#train" class="nav-link-btn" id="nav-btn-live">
-          <span>📍</span>
-          <span data-i18n="nav_live">Live Train</span>
+        <a href="#live" id="nav-live" class="nav-item">
+          <span>📍</span> <span data-i18n="nav_live">Live Status</span>
         </a>
-        <button type="button" class="nav-link-btn" id="nav-btn-passengers">
-          <span>👤</span>
-          <span data-i18n="nav_passengers">Passenger Master</span>
+        <button type="button" id="nav-btn-passengers" class="nav-item-btn">
+          <span>👤</span> <span data-i18n="nav_passengers">Passenger Master</span>
         </button>
-        <button type="button" class="nav-link-btn" id="nav-btn-journeys">
-          <span>⭐</span>
-          <span data-i18n="nav_journeys">Saved Journeys</span>
+        <button type="button" id="nav-btn-journeys" class="nav-item-btn">
+          <span>⭐</span> <span data-i18n="nav_journeys">Saved Journeys</span>
         </button>
       </nav>
 
-      <!-- Right Header Actions -->
+      <!-- Header Utilities (Language Switcher, Theme Toggle, Single Install Button, Dashboard) -->
       <div class="header-actions">
-        <!-- Language Switcher -->
-        <div class="lang-selector-wrapper" title="Change Language / भाषा बदलें">
-          <span class="lang-icon">🌐</span>
-          <select id="lang-selector" class="lang-select" aria-label="Language Selector">
+        <!-- Multilanguage Dropdown -->
+        <div class="lang-selector-wrapper">
+          <span style="font-size:0.9rem;" aria-hidden="true">🌐</span>
+          <select id="lang-selector" class="lang-select" aria-label="Select Language">
             <option value="en">English</option>
-            <option value="hi">हिंदी</option>
+            <option value="hi">हिंदी (Hindi)</option>
             <option value="hinglish">Hinglish</option>
           </select>
         </div>
 
-        <!-- Dark Mode Toggle Button -->
-        <button type="button" id="btn-theme-toggle" class="btn-theme-toggle" title="Toggle Dark / Light Theme" aria-label="Toggle Theme">
-          <span id="theme-icon">🌙</span>
+        <!-- Dark/Light Mode Toggle -->
+        <button type="button" id="btn-theme-toggle" class="header-action-btn theme-toggle-btn" title="Toggle Dark/Light Mode" aria-label="Toggle Theme">
+          🌙
         </button>
 
-        <!-- Single Controlled PWA Install Button -->
-        <button type="button" id="header-install-btn" class="header-install-btn" title="Install RailPlus App">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          <span id="header-install-text" data-i18n="btn_install_app">Install App</span>
+        <!-- Controlled PWA Install Button (Only 1 visible install location) -->
+        <button type="button" id="header-install-btn" class="header-install-action" title="Install RailPlus PWA">
+          <span>📲</span>
+          <span data-i18n="btn_install_app">Install App</span>
         </button>
 
         <!-- User Dashboard Button -->
-        <button type="button" id="btn-open-dashboard" class="header-dashboard-btn" title="Open Dashboard">
+        <button type="button" id="btn-open-dashboard" class="header-action-btn dashboard-icon-btn" title="User Dashboard" aria-label="Open User Dashboard">
           <span>👤</span>
-          <span data-i18n="btn_dashboard">Dashboard</span>
+          <span class="desktop-only-text" data-i18n="btn_dashboard">Dashboard</span>
         </button>
 
-        <!-- Mobile Drawer Toggle -->
-        <button type="button" id="btn-mobile-menu" class="mobile-menu-toggle" aria-label="Open Navigation Menu">
+        <!-- Mobile Menu Hamburger -->
+        <button type="button" id="btn-mobile-menu" class="mobile-menu-toggle" aria-label="Open Menu">
           ☰
         </button>
       </div>
     </div>
   </header>
 
-  <!-- Main Content Layout -->
-  <main class="main-content" id="home">
+  <main class="page-main" id="home">
     <div class="content-container">
 
-      <!-- Hero IRCTC-Inspired Train Search Section -->
+      <!-- Unified Main Booking & Enquiry Card (IRCTC Unified Interface) -->
       <section class="hero-booking-section">
-        <div class="hero-booking-card">
-          <div class="hero-booking-header">
-            <div class="hero-title-box">
-              <span style="font-size:1.3rem;">🚆</span>
-              <h2 data-i18n="hero_booking_title">BOOK TICKET / SEARCH TRAINS</h2>
-            </div>
-            <div>
-              <span class="hero-badge" data-i18n="hero_badge">Official IRCTC Booking Assistance</span>
-            </div>
+        <div class="hero-booking-card" id="main-booking-enquiry-card">
+
+          <!-- 5 Primary Tabs: PNR Status (ALWAYS FIRST!), Train Search, Seats, Live Status, Fare -->
+          <div class="main-tabs-header" role="tablist">
+            <button id="tab-pnr" class="main-tab-btn active" role="tab" aria-selected="true" aria-controls="panel-pnr" type="button">
+              <span class="tab-icon">🎫</span>
+              <span class="tab-label" data-i18n="tab_pnr">PNR Status</span>
+            </button>
+            <button id="tab-route" class="main-tab-btn" role="tab" aria-selected="false" aria-controls="panel-route" type="button">
+              <span class="tab-icon">🚆</span>
+              <span class="tab-label" data-i18n="nav_train_search">Train Search</span>
+            </button>
+            <button id="tab-seats" class="main-tab-btn" role="tab" aria-selected="false" aria-controls="panel-seats" type="button">
+              <span class="tab-icon">💺</span>
+              <span class="tab-label" data-i18n="tab_seats">Seat Availability</span>
+            </button>
+            <button id="tab-train" class="main-tab-btn" role="tab" aria-selected="false" aria-controls="panel-train" type="button">
+              <span class="tab-icon">📍</span>
+              <span class="tab-label" data-i18n="tab_live">Live Train Running</span>
+            </button>
+            <button id="tab-fare" class="main-tab-btn" role="tab" aria-selected="false" aria-controls="panel-fare" type="button">
+              <span class="tab-icon">💰</span>
+              <span class="tab-label" data-i18n="tab_fare">Fare Enquiry</span>
+            </button>
           </div>
 
           <div class="hero-booking-body">
-            <!-- Train Booking Form -->
-            <form id="route-form" class="search-form" novalidate>
-              <div class="station-row-wrapper">
-                <!-- From Station -->
-                <div class="station-input-col field-container flex-1">
-                  <label for="route-from-input" class="field-label">
-                    <span data-i18n="lbl_from_station">From Station</span>
-                    <span id="route-from-code-badge" class="selected-station-tag" hidden></span>
-                  </label>
-                  <div class="input-wrapper autocomplete-container">
-                    <span class="input-icon">📍</span>
-                    <input 
-                      id="route-from-input" 
-                      type="text" 
-                      autocomplete="off" 
-                      placeholder="e.g. NDLS (New Delhi) or ADI (Ahmedabad)" 
-                      data-i18n-ph="ph_from_station"
-                      required 
-                    />
-                    <div id="route-from-suggestions" class="autocomplete-dropdown" hidden></div>
+
+            <!-- PANEL 1: PNR Status Form (ALWAYS FIRST & ACTIVE ON LOAD) -->
+            <div id="panel-pnr" class="tab-panel active" role="tabpanel" aria-labelledby="tab-pnr">
+              <form id="pnr-form" class="search-form" novalidate>
+                <div class="panel-intro-header">
+                  <h3>Check Passenger Name Record (PNR) Status</h3>
+                  <p>Get real-time railway confirmation status, coach, berth, and final chart preparation details.</p>
+                </div>
+
+                <div class="form-group-row">
+                  <div class="field-container flex-1">
+                    <label for="pnr-input" class="field-label">
+                      <span data-i18n="lbl_pnr_number">Enter 10-Digit PNR Number</span>
+                      <span id="pnr-counter" class="counter-text">0 / 10 digits</span>
+                    </label>
+                    <div class="input-wrapper" style="position:relative;">
+                      <span class="input-icon" aria-hidden="true">🎫</span>
+                      <input 
+                        id="pnr-input" 
+                        type="text" 
+                        autocomplete="off" 
+                        inputmode="numeric" 
+                        pattern="[0-9]{10}" 
+                        maxlength="10" 
+                        placeholder="e.g. 2451893620" 
+                        required 
+                        style="font-size:1.15rem;font-weight:700;letter-spacing:1px;padding-right:80px;"
+                      />
+                      <button type="button" id="paste-pnr" class="paste-action" title="Paste from clipboard">
+                        Paste
+                      </button>
+                    </div>
+                    <span class="field-subtext" data-i18n="pnr_subtext">Printed on the top-left corner of your railway ticket</span>
                   </div>
                 </div>
 
-                <!-- Station Interchange / Swap Button (⇄) -->
-                <button type="button" id="btn-hero-swap-stations" class="btn-station-swap" title="Interchange Stations" aria-label="Swap From and To Stations">
-                  ⇄
-                </button>
-
-                <!-- To Station -->
-                <div class="station-input-col field-container flex-1">
-                  <label for="route-to-input" class="field-label">
-                    <span data-i18n="lbl_to_station">To Station</span>
-                    <span id="route-to-code-badge" class="selected-station-tag" hidden></span>
-                  </label>
-                  <div class="input-wrapper autocomplete-container">
-                    <span class="input-icon">🏁</span>
-                    <input 
-                      id="route-to-input" 
-                      type="text" 
-                      autocomplete="off" 
-                      placeholder="e.g. MMCT (Mumbai Central) or LKO (Lucknow)" 
-                      data-i18n-ph="ph_to_station"
-                      required 
-                    />
-                    <div id="route-to-suggestions" class="autocomplete-dropdown" hidden></div>
-                  </div>
+                <div class="form-actions" style="margin-top:16px;">
+                  <button type="submit" id="btn-submit-pnr" class="btn-hero-search">
+                    <span style="font-size:1.1rem;">🔍</span>
+                    <span data-i18n="btn_check_pnr">Check PNR Status</span>
+                  </button>
                 </div>
-              </div>
+              </form>
+            </div>
 
-              <!-- Journey Date, Class & Quota Row -->
-              <div class="form-group-row" style="margin-top:16px;">
-                <!-- Date Input -->
-                <div class="field-container flex-1">
-                  <label for="route-date-input" class="field-label">
-                    <span data-i18n="lbl_journey_date">Journey Date</span>
-                  </label>
-                  <div class="input-wrapper">
-                    <input id="route-date-input" type="date" lang="en-IN" title="Date format: DD-MM-YYYY" required />
-                  </div>
-                  <!-- Quick Date Chips -->
-                  <div class="quick-date-chips">
-                    <button type="button" class="date-chip" id="chip-date-today" data-i18n="chip_today">Today</button>
-                    <button type="button" class="date-chip active" id="chip-date-tomorrow" data-i18n="chip_tomorrow">Tomorrow</button>
-                    <button type="button" class="date-chip" id="chip-date-dayafter" data-i18n="chip_dayafter">Day After</button>
-                  </div>
-                  <span class="field-subtext" data-i18n="date_format_subtext">Format: DD-MM-YYYY</span>
+            <!-- PANEL 2: Train Search (Route) Form -->
+            <div id="panel-route" class="tab-panel" role="tabpanel" aria-labelledby="tab-route" hidden>
+              <form id="route-form" class="search-form" novalidate>
+                <div class="panel-intro-header">
+                  <h3 data-i18n="hero_booking_title">Search &amp; Book Trains</h3>
+                  <p>Search all direct trains between stations, check real-time availability, and proceed to booking.</p>
                 </div>
 
-                <!-- Travel Class Dropdown -->
-                <div class="field-container flex-1">
-                  <label for="hero-class-select" class="field-label">
-                    <span data-i18n="lbl_class">All Classes</span>
-                  </label>
-                  <div class="input-wrapper">
-                    <select id="hero-class-select">
-                      <option value="ALL" data-i18n="opt_all_classes">All Classes (सभी क्लास)</option>
-                      <option value="SL">Sleeper (SL)</option>
-                      <option value="3A" selected>AC 3 Tier (3A)</option>
-                      <option value="2A">AC 2 Tier (2A)</option>
-                      <option value="1A">AC First Class (1A)</option>
-                      <option value="3E">AC 3 Economy (3E)</option>
-                      <option value="CC">AC Chair Car (CC)</option>
-                      <option value="2S">Second Sitting (2S)</option>
-                      <option value="EC">Exec. Chair Car (EC)</option>
-                    </select>
+                <div class="station-row-wrapper">
+                  <!-- From Station -->
+                  <div class="station-input-col field-container flex-1">
+                    <label for="route-from-input" class="field-label">
+                      <span data-i18n="lbl_from_station">From Station</span>
+                      <span id="route-from-code-badge" class="selected-station-tag" hidden></span>
+                    </label>
+                    <div class="input-wrapper autocomplete-container">
+                      <span class="input-icon">📍</span>
+                      <input 
+                        id="route-from-input" 
+                        type="text" 
+                        autocomplete="off" 
+                        placeholder="e.g. NDLS (New Delhi) or ADI (Ahmedabad)" 
+                        data-i18n-ph="ph_from_station"
+                        required 
+                      />
+                      <div id="route-from-suggestions" class="autocomplete-dropdown" hidden></div>
+                    </div>
                   </div>
-                  <span class="field-subtext" data-i18n="opt_class_subtext">Select travel accommodation</span>
+
+                  <!-- Station Interchange / Swap Button (⇄) -->
+                  <button type="button" id="btn-hero-swap-stations" class="btn-station-swap" title="Interchange Stations" aria-label="Swap From and To Stations">
+                    ⇄
+                  </button>
+
+                  <!-- To Station -->
+                  <div class="station-input-col field-container flex-1">
+                    <label for="route-to-input" class="field-label">
+                      <span data-i18n="lbl_to_station">To Station</span>
+                      <span id="route-to-code-badge" class="selected-station-tag" hidden></span>
+                    </label>
+                    <div class="input-wrapper autocomplete-container">
+                      <span class="input-icon">🏁</span>
+                      <input 
+                        id="route-to-input" 
+                        type="text" 
+                        autocomplete="off" 
+                        placeholder="e.g. MMCT (Mumbai Central) or LKO (Lucknow)" 
+                        data-i18n-ph="ph_to_station"
+                        required 
+                      />
+                      <div id="route-to-suggestions" class="autocomplete-dropdown" hidden></div>
+                    </div>
+                  </div>
                 </div>
 
-                <!-- Quota Dropdown -->
-                <div class="field-container flex-1">
-                  <label for="hero-quota-select" class="field-label">
-                    <span data-i18n="lbl_quota">Quota</span>
-                  </label>
-                  <div class="input-wrapper">
-                    <select id="hero-quota-select">
-                      <option value="GN" selected data-i18n="quota_general">General Quota (GN)</option>
-                      <option value="TQ" data-i18n="quota_tatkal">Tatkal Quota (TQ)</option>
-                      <option value="PT" data-i18n="quota_ptatkal">Premium Tatkal (PT)</option>
-                      <option value="LD" data-i18n="quota_ladies">Ladies Quota (LD)</option>
-                      <option value="SS" data-i18n="quota_senior">Senior Citizen (SS)</option>
-                      <option value="HP" data-i18n="quota_divyang">Divyangjan (HP)</option>
-                    </select>
+                <!-- Journey Date, Class & Quota Row -->
+                <div class="form-group-row" style="margin-top:16px;">
+                  <!-- Date Input -->
+                  <div class="field-container flex-1">
+                    <label for="route-date-input" class="field-label">
+                      <span data-i18n="lbl_journey_date">Journey Date</span>
+                    </label>
+                    <div class="input-wrapper">
+                      <input id="route-date-input" type="date" lang="en-IN" title="Date format: DD-MM-YYYY" required />
+                    </div>
+                    <!-- Quick Date Chips -->
+                    <div class="quick-date-chips">
+                      <button type="button" class="date-chip" id="chip-date-today" data-i18n="chip_today">Today</button>
+                      <button type="button" class="date-chip active" id="chip-date-tomorrow" data-i18n="chip_tomorrow">Tomorrow</button>
+                      <button type="button" class="date-chip" id="chip-date-dayafter" data-i18n="chip_dayafter">Day After</button>
+                    </div>
+                    <span class="field-subtext" data-i18n="date_format_subtext">Format: DD-MM-YYYY</span>
                   </div>
-                  <span class="field-subtext" data-i18n="quota_subtext">General, Tatkal, Ladies, etc.</span>
+
+                  <!-- Travel Class Dropdown -->
+                  <div class="field-container flex-1">
+                    <label for="hero-class-select" class="field-label">
+                      <span data-i18n="lbl_class">All Classes</span>
+                    </label>
+                    <div class="input-wrapper">
+                      <select id="hero-class-select">
+                        <option value="ALL" data-i18n="opt_all_classes">All Classes (सभी क्लास)</option>
+                        <option value="SL">Sleeper (SL)</option>
+                        <option value="3A" selected>AC 3 Tier (3A)</option>
+                        <option value="2A">AC 2 Tier (2A)</option>
+                        <option value="1A">AC First Class (1A)</option>
+                        <option value="3E">AC 3 Economy (3E)</option>
+                        <option value="CC">AC Chair Car (CC)</option>
+                        <option value="2S">Second Sitting (2S)</option>
+                        <option value="EC">Exec. Chair Car (EC)</option>
+                      </select>
+                    </div>
+                    <span class="field-subtext" data-i18n="opt_class_subtext">Select travel accommodation</span>
+                  </div>
+
+                  <!-- Quota Dropdown -->
+                  <div class="field-container flex-1">
+                    <label for="hero-quota-select" class="field-label">
+                      <span data-i18n="lbl_quota">Quota</span>
+                    </label>
+                    <div class="input-wrapper">
+                      <select id="hero-quota-select">
+                        <option value="GN" selected data-i18n="quota_general">General Quota (GN)</option>
+                        <option value="TQ" data-i18n="quota_tatkal">Tatkal Quota (TQ)</option>
+                        <option value="PT" data-i18n="quota_ptatkal">Premium Tatkal (PT)</option>
+                        <option value="LD" data-i18n="quota_ladies">Ladies Quota (LD)</option>
+                        <option value="SS" data-i18n="quota_senior">Senior Citizen (SS)</option>
+                        <option value="HP" data-i18n="quota_divyang">Divyangjan (HP)</option>
+                      </select>
+                    </div>
+                    <span class="field-subtext" data-i18n="quota_subtext">General, Tatkal, Ladies, etc.</span>
+                  </div>
                 </div>
-              </div>
 
-              <!-- CTA Search Button -->
-              <div class="form-actions" style="margin-top:20px;">
-                <button type="submit" id="btn-submit-route" class="btn-hero-search">
-                  <span style="font-size:1.1rem;">🔍</span>
-                  <span data-i18n="btn_search_trains">Search Trains</span>
-                </button>
-              </div>
+                <!-- CTA Search Button -->
+                <div class="form-actions" style="margin-top:20px;">
+                  <button type="submit" id="btn-submit-route" class="btn-hero-search">
+                    <span style="font-size:1.1rem;">🔍</span>
+                    <span data-i18n="btn_search_trains">Search Trains</span>
+                  </button>
+                </div>
+              </form>
+            </div>
 
-              <!-- Quick Demo Route Button -->
-              <div style="display:flex;justify-content:flex-end;margin-top:8px;">
-                <button type="button" id="demo-route" class="demo-link-btn" data-i18n="btn_sample_route">Demo Train Route (NDLS ➔ MMCT)</button>
-              </div>
-            </form>
+            <!-- PANEL 3: Seat Availability Form -->
+            <div id="panel-seats" class="tab-panel" role="tabpanel" aria-labelledby="tab-seats" hidden>
+              <form id="seats-form" class="search-form" novalidate>
+                <div class="panel-intro-header">
+                  <h3 data-i18n="tab_seats">Check Seat Availability</h3>
+                  <p>View confirmed, RAC, and waiting list seats across Sleeper and AC classes.</p>
+                </div>
+
+                <div class="station-row-wrapper">
+                  <div class="station-input-col field-container flex-1">
+                    <label for="seats-from-input" class="field-label">
+                      <span data-i18n="lbl_from_station">From Station</span>
+                    </label>
+                    <div class="input-wrapper autocomplete-container">
+                      <span class="input-icon">📍</span>
+                      <input 
+                        id="seats-from-input" 
+                        class="station-autocomplete" 
+                        type="text" 
+                        autocomplete="off" 
+                        placeholder="e.g. NDLS (New Delhi)" 
+                        data-i18n-ph="ph_from_station"
+                        required 
+                      />
+                      <div id="seats-from-suggestions" class="autocomplete-dropdown" hidden></div>
+                    </div>
+                  </div>
+
+                  <button type="button" id="swap-seats-stations" class="btn-station-swap" title="Interchange Stations" aria-label="Swap Stations">
+                    ⇄
+                  </button>
+
+                  <div class="station-input-col field-container flex-1">
+                    <label for="seats-to-input" class="field-label">
+                      <span data-i18n="lbl_to_station">To Station</span>
+                    </label>
+                    <div class="input-wrapper autocomplete-container">
+                      <span class="input-icon">🏁</span>
+                      <input 
+                        id="seats-to-input" 
+                        class="station-autocomplete" 
+                        type="text" 
+                        autocomplete="off" 
+                        placeholder="e.g. MMCT (Mumbai Central)" 
+                        data-i18n-ph="ph_to_station"
+                        required 
+                      />
+                      <div id="seats-to-suggestions" class="autocomplete-dropdown" hidden></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group-row" style="margin-top:16px;">
+                  <div class="field-container flex-1">
+                    <label for="seats-date-input" class="field-label">
+                      <span data-i18n="lbl_journey_date">Journey Date</span>
+                    </label>
+                    <div class="input-wrapper">
+                      <input id="seats-date-input" type="date" lang="en-IN" required />
+                    </div>
+                  </div>
+
+                  <div class="field-container flex-1">
+                    <label for="seats-train-input" class="field-label">
+                      <span data-i18n="lbl_train_optional">Train Number (Optional)</span>
+                    </label>
+                    <div class="input-wrapper autocomplete-container">
+                      <span class="input-icon">🚆</span>
+                      <input 
+                        id="seats-train-input" 
+                        class="train-autocomplete" 
+                        type="text" 
+                        autocomplete="off" 
+                        placeholder="e.g. 12952 (Optional Filter)" 
+                        maxlength="5" 
+                      />
+                      <div id="seats-train-suggestions" class="autocomplete-dropdown" hidden></div>
+                    </div>
+                  </div>
+
+                  <div class="field-container flex-1">
+                    <label for="seats-class-select" class="field-label">
+                      <span data-i18n="lbl_class">Class</span>
+                    </label>
+                    <div class="input-wrapper">
+                      <select id="seats-class-select">
+                        <option value="" data-i18n="opt_all_classes">All Classes (सभी क्लास)</option>
+                        <option value="SL">Sleeper (SL)</option>
+                        <option value="3A">AC 3 Tier (3A)</option>
+                        <option value="2A">AC 2 Tier (2A)</option>
+                        <option value="1A">AC First Class (1A)</option>
+                        <option value="CC">AC Chair Car (CC)</option>
+                        <option value="2S">Second Sitting (2S)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="field-container flex-1">
+                    <label for="seats-quota-select" class="field-label">
+                      <span data-i18n="lbl_quota">Quota</span>
+                    </label>
+                    <div class="input-wrapper">
+                      <select id="seats-quota-select">
+                        <option value="GN" selected data-i18n="quota_general">General Quota (GN)</option>
+                        <option value="TQ" data-i18n="quota_tatkal">Tatkal Quota (TQ)</option>
+                        <option value="PT" data-i18n="quota_ptatkal">Premium Tatkal (PT)</option>
+                        <option value="LD" data-i18n="quota_ladies">Ladies Quota (LD)</option>
+                        <option value="SS" data-i18n="quota_senior">Senior Citizen (SS)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-actions" style="margin-top:20px;">
+                  <button type="submit" id="btn-submit-seats" class="btn-hero-search">
+                    <span style="font-size:1.1rem;">🔍</span>
+                    <span data-i18n="btn_check_seats">Check Seat Availability</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- PANEL 4: Live Train Running Form -->
+            <div id="panel-train" class="tab-panel" role="tabpanel" aria-labelledby="tab-train" hidden>
+              <form id="train-form" class="search-form" novalidate>
+                <div class="panel-intro-header">
+                  <h3 data-i18n="tab_live">Live Train Running Status</h3>
+                  <p>Track exact train location, delay in minutes, platform number, and upcoming station stops.</p>
+                </div>
+
+                <div class="form-group-row">
+                  <div class="field-container flex-1">
+                    <label for="train-number-input" class="field-label">
+                      <span data-i18n="lbl_train_num_name">Train Number or Name</span>
+                      <span id="train-counter" class="counter-text">0 / 5</span>
+                    </label>
+                    <div class="input-wrapper autocomplete-container">
+                      <span class="input-icon">🚆</span>
+                      <input 
+                        id="train-number-input" 
+                        class="train-autocomplete" 
+                        type="text" 
+                        autocomplete="off" 
+                        inputmode="numeric" 
+                        placeholder="e.g. 12952 (Tejas Rajdhani)" 
+                        required 
+                      />
+                      <div id="train-number-suggestions" class="autocomplete-dropdown" hidden></div>
+                    </div>
+                    <span class="field-subtext">5-digit train number or partial train name</span>
+                  </div>
+
+                  <div class="field-container flex-1">
+                    <label for="journey-date" class="field-label">
+                      <span data-i18n="lbl_start_date">Train Start Date</span>
+                    </label>
+                    <div class="input-wrapper">
+                      <input id="journey-date" type="date" lang="en-IN" required />
+                    </div>
+                    <span class="field-subtext" data-i18n="train_date_subtext">Today or up to 5 days back</span>
+                  </div>
+                </div>
+
+                <div class="form-actions" style="margin-top:20px;">
+                  <button type="submit" id="btn-submit-train" class="btn-hero-search">
+                    <span style="font-size:1.1rem;">📍</span>
+                    <span data-i18n="btn_track_train">Track Live Train</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- PANEL 5: Fare Enquiry Form -->
+            <div id="panel-fare" class="tab-panel" role="tabpanel" aria-labelledby="tab-fare" hidden>
+              <form id="fare-form" class="search-form" novalidate>
+                <div class="panel-intro-header">
+                  <h3 data-i18n="tab_fare">Train Fare Table &amp; Breakdown</h3>
+                  <p>Detailed fare breakdown including base fare, reservation fee, and superfast charges.</p>
+                </div>
+
+                <div class="form-group-row">
+                  <div class="field-container flex-1">
+                    <label for="fare-train-input" class="field-label">
+                      <span data-i18n="lbl_train_number">Train Number</span>
+                    </label>
+                    <div class="input-wrapper autocomplete-container">
+                      <span class="input-icon">🚆</span>
+                      <input 
+                        id="fare-train-input" 
+                        class="train-autocomplete" 
+                        type="text" 
+                        autocomplete="off" 
+                        placeholder="e.g. 12952" 
+                        maxlength="5" 
+                        required 
+                      />
+                      <div id="fare-train-suggestions" class="autocomplete-dropdown" hidden></div>
+                    </div>
+                  </div>
+
+                  <div class="field-container flex-1">
+                    <label for="fare-date-input" class="field-label">
+                      <span data-i18n="lbl_journey_date">Journey Date</span>
+                    </label>
+                    <div class="input-wrapper">
+                      <input id="fare-date-input" type="date" lang="en-IN" required />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="station-row-wrapper" style="margin-top:14px;">
+                  <div class="station-input-col field-container flex-1">
+                    <label for="fare-from-input" class="field-label">
+                      <span data-i18n="lbl_from_station">From Station</span>
+                    </label>
+                    <div class="input-wrapper autocomplete-container">
+                      <span class="input-icon">📍</span>
+                      <input 
+                        id="fare-from-input" 
+                        class="station-autocomplete" 
+                        type="text" 
+                        autocomplete="off" 
+                        placeholder="e.g. NDLS (New Delhi)" 
+                        data-i18n-ph="ph_from_station"
+                        required 
+                      />
+                      <div id="fare-from-suggestions" class="autocomplete-dropdown" hidden></div>
+                    </div>
+                  </div>
+
+                  <button type="button" id="swap-fare-stations" class="btn-station-swap" title="Interchange Stations" aria-label="Swap Stations">
+                    ⇄
+                  </button>
+
+                  <div class="station-input-col field-container flex-1">
+                    <label for="fare-to-input" class="field-label">
+                      <span data-i18n="lbl_to_station">To Station</span>
+                    </label>
+                    <div class="input-wrapper autocomplete-container">
+                      <span class="input-icon">🏁</span>
+                      <input 
+                        id="fare-to-input" 
+                        class="station-autocomplete" 
+                        type="text" 
+                        autocomplete="off" 
+                        placeholder="e.g. MMCT (Mumbai Central)" 
+                        data-i18n-ph="ph_to_station"
+                        required 
+                      />
+                      <div id="fare-to-suggestions" class="autocomplete-dropdown" hidden></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-actions" style="margin-top:20px;">
+                  <button type="submit" id="btn-submit-fare" class="btn-hero-search">
+                    <span style="font-size:1.1rem;">💰</span>
+                    <span data-i18n="btn_check_fare">Check Fare Table</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
           </div>
         </div>
 
@@ -307,257 +636,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Secondary Enquiry Pill Tabs (PNR, Seats, Live Train, Fare) -->
-        <div style="margin-top:20px;">
-          <div class="secondary-enquiry-bar" role="tablist">
-            <button id="tab-pnr" class="secondary-tab-btn" role="tab" aria-selected="false" aria-controls="panel-pnr" type="button">
-              <span>🎫</span>
-              <span data-i18n="tab_pnr">PNR Status</span>
-            </button>
-            <button id="tab-seats" class="secondary-tab-btn" role="tab" aria-selected="false" aria-controls="panel-seats" type="button">
-              <span>💺</span>
-              <span data-i18n="tab_seats">Seat Availability</span>
-            </button>
-            <button id="tab-train" class="secondary-tab-btn" role="tab" aria-selected="false" aria-controls="panel-train" type="button">
-              <span>📍</span>
-              <span data-i18n="tab_live">Live Train Running</span>
-            </button>
-            <button id="tab-fare" class="secondary-tab-btn" role="tab" aria-selected="false" aria-controls="panel-fare" type="button">
-              <span>💰</span>
-              <span data-i18n="tab_fare">Fare Inquiry</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Hidden container to keep tab-route button in DOM for backwards compatibility -->
-        <button id="tab-route" class="tab-button active" role="tab" aria-selected="true" aria-controls="panel-route" type="button" style="display:none;"></button>
-      </section>
-
-      <!-- Central Search Box / Enquiry Card (For PNR, Seats, Live Running, Fare) -->
-      <section class="enquiry-card" id="secondary-enquiry-card" style="display:none;">
-        <!-- Panel: PNR Enquiry Form -->
-        <div id="panel-pnr" class="tab-panel" role="tabpanel" aria-labelledby="tab-pnr">
-          <form id="pnr-form" class="search-form" novalidate>
-            <div class="form-group-row">
-              <div class="field-container">
-                <label for="pnr-input" class="field-label">
-                  <span data-i18n="lbl_pnr_number">Enter 10-Digit PNR Number</span>
-                  <span id="pnr-counter" class="counter-text">0 / 10 digits</span>
-                </label>
-                <div class="input-wrapper">
-                  <span class="input-icon" aria-hidden="true">#</span>
-                  <input 
-                    id="pnr-input" 
-                    type="text" 
-                    autocomplete="off" 
-                    inputmode="numeric" 
-                    pattern="[0-9]{10}" 
-                    maxlength="10" 
-                    placeholder="e.g. 2451893620" 
-                    required 
-                  />
-                  <button type="button" id="paste-pnr" class="paste-action" title="Paste from clipboard">
-                    Paste
-                  </button>
-                </div>
-                <span class="field-subtext" data-i18n="pnr_subtext">10-digit number printed on the top-left of ticket</span>
-              </div>
-            </div>
-
-            <div class="form-actions">
-              <button type="submit" id="btn-submit-pnr" class="submit-button">
-                <span>🔍</span>
-                <span data-i18n="btn_check_pnr">Check PNR Status</span>
-              </button>
-            </div>
-
-            <div class="demo-bar">
-              <button type="button" id="demo-pnr" class="demo-link-btn" data-i18n="btn_demo_pnr">Demo PNR (Sample)</button>
-            </div>
-          </form>
-        </div>
-
-        <!-- Panel: Seats Enquiry Form -->
-        <div id="panel-seats" class="tab-panel" role="tabpanel" aria-labelledby="tab-seats">
-          <form id="seats-form" class="search-form" novalidate>
-            <div class="form-group-row">
-              <div class="field-container flex-1">
-                <label for="seats-from-input" class="field-label">
-                  <span data-i18n="lbl_from_station">From Station</span>
-                </label>
-                <div class="input-wrapper autocomplete-container">
-                  <input id="seats-from-input" type="text" autocomplete="off" placeholder="e.g. NDLS (New Delhi)" required />
-                  <div id="seats-from-suggestions" class="autocomplete-dropdown" hidden></div>
-                </div>
-              </div>
-
-              <div class="field-container flex-1">
-                <label for="seats-to-input" class="field-label">
-                  <span data-i18n="lbl_to_station">To Station</span>
-                </label>
-                <div class="input-wrapper autocomplete-container">
-                  <input id="seats-to-input" type="text" autocomplete="off" placeholder="e.g. MMCT (Mumbai Central)" required />
-                  <div id="seats-to-suggestions" class="autocomplete-dropdown" hidden></div>
-                </div>
-              </div>
-
-              <div class="field-container flex-1">
-                <label for="seats-date-input" class="field-label">
-                  <span data-i18n="lbl_journey_date">Journey Date</span>
-                </label>
-                <div class="input-wrapper">
-                  <input id="seats-date-input" type="date" lang="en-IN" title="Date format: DD-MM-YYYY" required />
-                </div>
-                <span class="field-subtext" data-i18n="date_format_subtext">Format: DD-MM-YYYY</span>
-              </div>
-            </div>
-
-            <div class="form-group-row" style="margin-top:12px;">
-              <div class="field-container flex-1">
-                <label for="seats-train-input" class="field-label">
-                  <span data-i18n="lbl_train_optional">Train Number (Optional)</span>
-                </label>
-                <div class="input-wrapper autocomplete-container">
-                  <input id="seats-train-input" type="text" autocomplete="off" placeholder="Optional e.g. 12952" />
-                  <div id="seats-train-suggestions" class="autocomplete-dropdown" hidden></div>
-                </div>
-              </div>
-
-              <div class="field-container flex-1">
-                <label for="seats-class-select" class="field-label">
-                  <span data-i18n="lbl_class">Class</span>
-                </label>
-                <div class="input-wrapper">
-                  <select id="seats-class-select">
-                    <option value="ALL" data-i18n="opt_all_classes">All Classes</option>
-                    <option value="SL">Sleeper (SL)</option>
-                    <option value="3A" selected>AC 3 Tier (3A)</option>
-                    <option value="2A">AC 2 Tier (2A)</option>
-                    <option value="1A">AC First Class (1A)</option>
-                    <option value="3E">AC 3 Economy (3E)</option>
-                    <option value="CC">AC Chair Car (CC)</option>
-                    <option value="2S">Second Sitting (2S)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="field-container flex-1">
-                <label for="seats-quota-select" class="field-label">
-                  <span data-i18n="lbl_quota">Quota</span>
-                </label>
-                <div class="input-wrapper">
-                  <select id="seats-quota-select">
-                    <option value="GN" selected data-i18n="quota_general">General Quota (GN)</option>
-                    <option value="TQ" data-i18n="quota_tatkal">Tatkal Quota (TQ)</option>
-                    <option value="LD" data-i18n="quota_ladies">Ladies Quota (LD)</option>
-                    <option value="SS" data-i18n="quota_senior">Senior Citizen (SS)</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div class="form-actions" style="margin-top:16px;">
-              <button type="submit" id="btn-submit-seats" class="submit-button">
-                <span>💺</span>
-                <span data-i18n="btn_check_seats">Check Seat Availability</span>
-              </button>
-            </div>
-
-            <div class="demo-bar">
-              <button type="button" id="demo-seats" class="demo-link-btn" data-i18n="btn_demo_seats">Demo Seat Availability</button>
-            </div>
-          </form>
-        </div>
-
-        <!-- Panel: Live Train Running Form -->
-        <div id="panel-train" class="tab-panel" role="tabpanel" aria-labelledby="tab-train">
-          <form id="train-form" class="search-form" novalidate>
-            <div class="form-group-row">
-              <div class="field-container flex-1">
-                <label for="train-number-input" class="field-label">
-                  <span data-i18n="lbl_train_num_name">5-Digit Train Number or Name</span>
-                  <span id="train-counter" class="counter-text">0 / 5 digits</span>
-                </label>
-                <div class="input-wrapper autocomplete-container">
-                  <input id="train-number-input" type="text" autocomplete="off" placeholder="e.g. 12952 (Rajdhani)" required />
-                  <div id="train-search-suggestions" class="autocomplete-dropdown" hidden></div>
-                </div>
-              </div>
-
-              <div class="field-container flex-1">
-                <label for="journey-date" class="field-label">
-                  <span data-i18n="lbl_start_date">Train Start Date</span>
-                </label>
-                <div class="input-wrapper">
-                  <input id="journey-date" type="date" lang="en-IN" title="Date format: DD-MM-YYYY" required />
-                </div>
-                <span class="field-subtext" data-i18n="train_date_subtext">Format: DD-MM-YYYY • Departure date</span>
-              </div>
-            </div>
-
-            <div class="form-actions">
-              <button type="submit" id="btn-submit-train" class="submit-button">
-                <span>📍</span>
-                <span data-i18n="btn_track_train">Track Live Running Status</span>
-              </button>
-            </div>
-
-            <div class="demo-bar">
-              <button type="button" id="demo-train" class="demo-link-btn" data-i18n="btn_demo_train">Demo Live Running (12952)</button>
-            </div>
-          </form>
-        </div>
-
-        <!-- Panel: Fare Inquiry Form -->
-        <div id="panel-fare" class="tab-panel" role="tabpanel" aria-labelledby="tab-fare">
-          <form id="fare-form" class="search-form" novalidate>
-            <div class="form-group-row">
-              <div class="field-container flex-1">
-                <label for="fare-train-input" class="field-label" data-i18n="lbl_train_number">Train Number</label>
-                <div class="input-wrapper autocomplete-container">
-                  <input id="fare-train-input" type="text" autocomplete="off" placeholder="e.g. 12952" required />
-                  <div id="fare-train-suggestions" class="autocomplete-dropdown" hidden></div>
-                </div>
-              </div>
-
-              <div class="field-container flex-1">
-                <label for="fare-from-input" class="field-label" data-i18n="lbl_from_station">From Station</label>
-                <div class="input-wrapper autocomplete-container">
-                  <input id="fare-from-input" type="text" autocomplete="off" placeholder="e.g. NDLS" required />
-                  <div id="fare-from-suggestions" class="autocomplete-dropdown" hidden></div>
-                </div>
-              </div>
-
-              <div class="field-container flex-1">
-                <label for="fare-to-input" class="field-label" data-i18n="lbl_to_station">To Station</label>
-                <div class="input-wrapper autocomplete-container">
-                  <input id="fare-to-input" type="text" autocomplete="off" placeholder="e.g. MMCT" required />
-                  <div id="fare-to-suggestions" class="autocomplete-dropdown" hidden></div>
-                </div>
-              </div>
-
-              <div class="field-container flex-1">
-                <label for="fare-date-input" class="field-label" data-i18n="lbl_journey_date">Journey Date</label>
-                <div class="input-wrapper">
-                  <input id="fare-date-input" type="date" lang="en-IN" title="Date format: DD-MM-YYYY" required />
-                </div>
-                <span class="field-subtext" data-i18n="date_format_subtext">Format: DD-MM-YYYY</span>
-              </div>
-            </div>
-
-            <div class="form-actions" style="margin-top:16px;">
-              <button type="submit" id="btn-submit-fare" class="submit-button">
-                <span>💰</span>
-                <span data-i18n="btn_check_fare">Check Fare Breakdown</span>
-              </button>
-            </div>
-
-            <div class="demo-bar">
-              <button type="button" id="demo-fare" class="demo-link-btn" data-i18n="btn_demo_fare">Demo Fare (12952)</button>
-            </div>
-          </form>
-        </div>
       </section>
 
       <!-- Feedback / Alert Notifications -->
@@ -570,43 +648,39 @@
       <!-- Results Display Container -->
       <section id="result" class="result-area" aria-live="polite" hidden></section>
 
-      <!-- Important Railway Rules & Info Section -->
+      <!-- Indian Railways Guidelines & Help Info -->
       <section class="info-section">
-        <h3 data-i18n="info_heading">Important Railway Rules &amp; Information</h3>
+        <h3 class="info-title" data-i18n="info_heading">Important Indian Railways Information</h3>
         <div class="info-grid">
           <div class="info-card">
-            <h4><span class="info-icon">📄</span> <span data-i18n="info_pnr_title">PNR &amp; Seat Indicators</span></h4>
-            <ul class="info-list">
-              <li><strong>CNF (Confirmed):</strong> <span data-i18n="info_cnf">Seat is confirmed, coach and berth are allocated.</span></li>
-              <li><strong>RAC (Reservation Against Cancellation):</strong> <span data-i18n="info_rac">Guaranteed travel; share a lower berth.</span></li>
-              <li><strong>WL (Waitlist):</strong> <span data-i18n="info_wl">Ticket in waiting; confirmable upon cancellations before charting.</span></li>
-              <li><strong>Tatkal Quota (TQ):</strong> <span data-i18n="info_tq">Opens 1 day before journey at 10:00 AM (AC) &amp; 11:00 AM (Non-AC).</span></li>
+            <h4 data-i18n="info_pnr_title">PNR Status Codes &amp; Meanings</h4>
+            <ul>
+              <li><strong>CNF:</strong> <span data-i18n="info_cnf">Confirmed booking with allotted coach and berth.</span></li>
+              <li><strong>RAC:</strong> <span data-i18n="info_rac">Reservation Against Cancellation — guaranteed boarding.</span></li>
+              <li><strong>WL:</strong> <span data-i18n="info_wl">Waiting List ticket — confirmable upon cancellation.</span></li>
+              <li><strong>TQ:</strong> <span data-i18n="info_tq">Tatkal waiting list (zero refund upon cancellation if confirmed).</span></li>
             </ul>
           </div>
-
           <div class="info-card">
-            <h4><span class="info-icon">🕒</span> <span data-i18n="info_chart_title">Charting &amp; Helpline</span></h4>
-            <ul class="info-list">
-              <li><strong>First Chart:</strong> <span data-i18n="info_first_chart">Prepared approx 4 hours before train departure from origin.</span></li>
-              <li><strong>Second Chart:</strong> <span data-i18n="info_second_chart">Finalized approx 30 minutes before departure.</span></li>
-              <li><strong>Railway Helpline:</strong> <span data-i18n="info_helpline">Dial <strong>139</strong> (24x7 all India toll-free).</span></li>
-              <li><strong>Official Booking:</strong> <span data-i18n="info_official">Confirmed bookings &amp; payments take place on official portal (irctc.co.in).</span></li>
+            <h4 data-i18n="info_chart_title">Chart Preparation Timeline</h4>
+            <ul>
+              <li data-i18n="info_first_chart">First Chart: Prepared approx. 4 hours prior to train departure.</li>
+              <li data-i18n="info_second_chart">Final Chart: Prepared ~30 minutes prior from charting station.</li>
+              <li data-i18n="info_helpline">Railway Helpline: Dial 139 for 24x7 security &amp; medical assistance.</li>
+              <li data-i18n="info_official">Authorized Partner: Prepares journey details and hands off to IRCTC portal.</li>
             </ul>
           </div>
-        </div>
-
-        <div class="disclaimer-banner">
-          <span class="disclaimer-icon">ℹ</span>
-          <p>
-            <strong>Disclaimer:</strong> RailPlus is an independent travel enquiry and booking-assistance utility. It is not directly affiliated with Indian Railways, IRCTC, or CRIS. Confirmed reservations, cancellations, and payments are executed on the official IRCTC portal (<a href="https://www.irctc.co.in/" target="_blank" rel="noopener noreferrer">irctc.co.in</a>) or NTES (<a href="https://enquiry.indianrail.gov.in/ntes/" target="_blank" rel="noopener noreferrer">enquiry.indianrail.gov.in</a>).
-          </p>
         </div>
       </section>
 
     </div>
   </main>
 
-  <!-- Multi-Step Booking Assistance Flow Modal -->
+  <!-- ========================================================================= -->
+  <!-- MODALS SECTION -->
+  <!-- ========================================================================= -->
+
+  <!-- 1. Booking Assistance & IRCTC Handoff Flow Modal -->
   <div id="booking-flow-modal" class="booking-modal-overlay" hidden>
     <div class="booking-modal-card">
       <div class="modal-header-irctc">
@@ -634,7 +708,7 @@
 
           <h4 style="margin:12px 0 8px;font-size:0.95rem;color:var(--text-main);display:flex;justify-content:space-between;align-items:center;">
             <span data-i18n="select_passengers_title">Select Passengers (Max 6)</span>
-            <button type="button" id="btn-quick-add-pax" class="demo-link-btn" style="font-size:0.75rem;" data-i18n="btn_add_new_passenger">+ Add New Passenger</button>
+            <button type="button" id="btn-quick-add-pax" class="btn-link-action" style="font-size:0.8rem;background:none;border:none;color:#ea580c;font-weight:700;cursor:pointer;" data-i18n="btn_add_new_passenger">+ Add New Passenger</button>
           </h4>
 
           <div id="booking-passenger-selection-list" class="passenger-pick-list">
@@ -699,7 +773,7 @@
     </div>
   </div>
 
-  <!-- Passenger Master Management Modal -->
+  <!-- 2. Passenger Master Management Modal -->
   <div id="passenger-master-modal" class="passenger-modal-overlay" hidden>
     <div class="passenger-modal-card">
       <div class="modal-header-irctc">
@@ -723,15 +797,15 @@
 
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
               <div>
-                <label class="field-label" data-i18n="lbl_pax_age">Age</label>
+                <label class="field-label" data-i18n="lbl_pax_age">Age (Years)</label>
                 <input id="pm-age" type="number" min="1" max="125" required placeholder="Age" style="width:100%;padding:8px 12px;border:1px solid var(--border-light);border-radius:6px;background:var(--bg-card);" />
               </div>
               <div>
                 <label class="field-label" data-i18n="lbl_pax_gender">Gender</label>
                 <select id="pm-gender" style="width:100%;padding:8px 12px;border:1px solid var(--border-light);border-radius:6px;background:var(--bg-card);">
-                  <option value="Male" data-i18n="gender_male">Male</option>
-                  <option value="Female" data-i18n="gender_female">Female</option>
-                  <option value="Transgender" data-i18n="gender_trans">Transgender</option>
+                  <option value="Male" data-i18n="gender_male">Male (पुरुष)</option>
+                  <option value="Female" data-i18n="gender_female">Female (महिला)</option>
+                  <option value="Transgender" data-i18n="gender_trans">Transgender (ट्रांसजेंडर)</option>
                 </select>
               </div>
             </div>
@@ -752,33 +826,38 @@
               <div>
                 <label class="field-label" data-i18n="lbl_pax_food">Food Preference</label>
                 <select id="pm-food" style="width:100%;padding:8px 12px;border:1px solid var(--border-light);border-radius:6px;background:var(--bg-card);">
-                  <option value="Veg" data-i18n="food_veg">Vegetarian</option>
-                  <option value="Non-Veg" data-i18n="food_nonveg">Non-Vegetarian</option>
-                  <option value="No Food" data-i18n="food_none">No Food</option>
+                  <option value="Veg" data-i18n="food_veg">Vegetarian (शाकाहारी)</option>
+                  <option value="NonVeg" data-i18n="food_nonveg">Non-Vegetarian (मांसाहारी)</option>
+                  <option value="NoFood" data-i18n="food_none">No Food (कोई भोजन नहीं)</option>
                 </select>
               </div>
             </div>
 
             <div>
-              <label class="field-label" data-i18n="lbl_pax_nickname">Optional Nickname / Label</label>
-              <input id="pm-nickname" type="text" placeholder="e.g. Self, Mom, Friend" style="width:100%;padding:8px 12px;border:1px solid var(--border-light);border-radius:6px;background:var(--bg-card);" />
+              <label class="field-label" data-i18n="lbl_pax_nickname">Optional Nickname / Relationship</label>
+              <input id="pm-nickname" type="text" placeholder="e.g. Papa, Sister, Friend" style="width:100%;padding:8px 12px;border:1px solid var(--border-light);border-radius:6px;background:var(--bg-card);" />
             </div>
 
-            <div style="margin-top:6px;">
-              <button type="submit" class="submit-button" style="width:100%;height:40px;" data-i18n="btn_save_passenger_master">Save Passenger</button>
+            <div style="display:flex;justify-content:flex-end;margin-top:6px;">
+              <button type="submit" id="btn-save-passenger-master" class="submit-button" style="height:38px;padding:0 20px;" data-i18n="btn_save_passenger_master">
+                Save Passenger Details
+              </button>
             </div>
           </div>
         </form>
 
-        <h4 style="margin:16px 0 10px;font-size:0.95rem;" data-i18n="saved_passengers_list_title">Saved Passengers</h4>
-        <div id="passenger-master-items-list">
-          <!-- Rendered dynamically -->
+        <!-- Saved Passengers List -->
+        <h4 style="font-size:0.95rem;margin-bottom:10px;color:var(--text-main);" data-i18n="saved_passengers_list_title">
+          Saved Passengers List
+        </h4>
+        <div id="saved-passengers-list">
+          <!-- Dynamically populated from localStorage -->
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Station Master & Saved Journeys Modal -->
+  <!-- 3. Saved Journeys & Station Master Modal -->
   <div id="saved-journeys-modal" class="journeys-modal-overlay" hidden>
     <div class="journeys-modal-card">
       <div class="modal-header-irctc">
@@ -801,16 +880,18 @@
         <form id="add-saved-journey-form" style="background:var(--bg-card-subtle);border:1px solid var(--border-light);border-radius:8px;padding:14px;margin-top:16px;">
           <h4 style="font-size:0.9rem;margin-bottom:10px;" data-i18n="add_favorite_route_title">Add Favorite Route</h4>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
-            <input id="add-route-from" type="text" placeholder="From (e.g. ADI)" required style="padding:6px 10px;border:1px solid var(--border-light);border-radius:4px;background:var(--bg-card);" />
-            <input id="add-route-to" type="text" placeholder="To (e.g. LKO)" required style="padding:6px 10px;border:1px solid var(--border-light);border-radius:4px;background:var(--bg-card);" />
+            <input id="add-route-from" type="text" placeholder="From Station Code (e.g. ADI)" required style="padding:8px;border:1px solid var(--border-light);border-radius:6px;text-transform:uppercase;" />
+            <input id="add-route-to" type="text" placeholder="To Station Code (e.g. LKO)" required style="padding:8px;border:1px solid var(--border-light);border-radius:6px;text-transform:uppercase;" />
           </div>
-          <button type="submit" class="submit-button" style="width:100%;height:38px;" data-i18n="btn_add_favorite_route">Save Route</button>
+          <div style="display:flex;justify-content:flex-end;">
+            <button type="submit" class="btn-search-saved-route" style="padding:8px 18px;" data-i18n="btn_add_favorite_route">Save This Route</button>
+          </div>
         </form>
       </div>
     </div>
   </div>
 
-  <!-- User Dashboard Modal -->
+  <!-- 4. User Dashboard Modal -->
   <div id="user-dashboard-modal" class="dashboard-modal-overlay" hidden>
     <div class="dashboard-modal-card">
       <div class="modal-header-irctc">
@@ -822,86 +903,110 @@
       </div>
 
       <div class="modal-body-scroll">
-        <!-- Quick Stats -->
+        <!-- Dashboard Summary Stats -->
         <div class="dashboard-grid-stats">
           <div class="dash-stat-box">
-            <strong id="stat-passengers-count">0</strong>
-            <span data-i18n="stat_passengers">Saved Passengers</span>
+            <span class="stat-number" id="stat-passengers-count">0</span>
+            <span class="stat-desc" data-i18n="stat_passengers">Saved Passengers</span>
           </div>
           <div class="dash-stat-box">
-            <strong id="stat-journeys-count">0</strong>
-            <span data-i18n="stat_routes">Saved Routes</span>
+            <span class="stat-number" id="stat-journeys-count">3</span>
+            <span class="stat-desc" data-i18n="stat_routes">Saved Routes</span>
           </div>
           <div class="dash-stat-box">
-            <strong id="stat-bookings-count">0</strong>
-            <span data-i18n="stat_bookings">Assisted Bookings</span>
+            <span class="stat-number" id="stat-bookings-count">0</span>
+            <span class="stat-desc" data-i18n="stat_bookings">Booking Records</span>
           </div>
         </div>
 
-        <!-- Dashboard Menu -->
-        <div class="dash-menu-list">
-          <div class="dash-menu-item" id="dash-link-passengers">
-            <span>👤 <span data-i18n="menu_passengers">Passenger Master Management</span></span>
-            <span>➔</span>
-          </div>
-          <div class="dash-menu-item" id="dash-link-journeys">
-            <span>⭐ <span data-i18n="menu_journeys">Saved Journeys &amp; Favorite Routes</span></span>
-            <span>➔</span>
-          </div>
-          <div class="dash-menu-item" id="dash-link-bookings">
-            <span>📋 <span data-i18n="menu_history">Booking Assistance History</span></span>
-            <span>➔</span>
-          </div>
-          <div class="dash-menu-item" id="dash-link-install">
-            <span>📲 <span data-i18n="menu_install_app">Install RailPlus Web App</span></span>
-            <span>➔</span>
-          </div>
-          <div class="dash-menu-item" id="dash-link-cleardata" style="color:#ef4444;">
-            <span>🗑️ <span data-i18n="menu_clear_data">Reset / Clear All Saved Data</span></span>
-            <span>✕</span>
-          </div>
+        <!-- Dashboard Action Menu List -->
+        <div class="dashboard-menu-links">
+          <button type="button" class="dash-menu-row" id="dash-menu-passengers">
+            <span class="dash-icon">👤</span>
+            <div class="dash-info">
+              <strong data-i18n="menu_passengers">Passenger Master</strong>
+              <small>Manage family and co-travelers</small>
+            </div>
+            <span class="dash-arrow">➔</span>
+          </button>
+
+          <button type="button" class="dash-menu-row" id="dash-menu-journeys">
+            <span class="dash-icon">⭐</span>
+            <div class="dash-info">
+              <strong data-i18n="menu_journeys">Saved Journeys</strong>
+              <small>Favorite routes &amp; station shortcuts</small>
+            </div>
+            <span class="dash-arrow">➔</span>
+          </button>
+
+          <button type="button" class="dash-menu-row" id="dash-menu-history">
+            <span class="dash-icon">📋</span>
+            <div class="dash-info">
+              <strong data-i18n="menu_history">Booking History</strong>
+              <small>Assisted journey reservations</small>
+            </div>
+            <span class="dash-arrow">➔</span>
+          </button>
+
+          <button type="button" class="dash-menu-row" id="dash-menu-install">
+            <span class="dash-icon">📲</span>
+            <div class="dash-info">
+              <strong data-i18n="menu_install_app">Install RailPlus App</strong>
+              <small>Fast home-screen access</small>
+            </div>
+            <span class="dash-arrow">➔</span>
+          </button>
+
+          <button type="button" class="dash-menu-row" id="dash-menu-clear" style="color:#b91c1c;">
+            <span class="dash-icon">🗑️</span>
+            <div class="dash-info">
+              <strong data-i18n="menu_clear_data">Reset / Clear All Saved Data</strong>
+              <small>Erase stored local passengers &amp; routes</small>
+            </div>
+            <span class="dash-arrow">➔</span>
+          </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Footer -->
-  <footer class="app-footer">
-    <div class="footer-container">
-      <div class="footer-brand-col">
-        <div class="footer-logo">
-          <img src="logo.png" alt="RailPlus" />
-          <span>Rail <strong>Plus</strong></span>
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-col">
+        <div class="footer-brand">
+          <img src="logo.png" alt="RailPlus" style="width:24px;height:24px;object-fit:contain;" />
+          <span style="font-weight:700;color:#ffffff;font-size:1.05rem;">Rail<span style="color:#22c55e;">Plus</span>.in</span>
         </div>
-        <p data-i18n="footer_desc">
-          Official IRCTC-inspired train ticket booking assistance, live status, PNR verification, and seat availability platform for Indian Railways passengers.
+        <p style="font-size:0.8rem;color:#94a3b8;margin-top:8px;" data-i18n="footer_desc">
+          Smart Indian Railway travel companion and booking assistance platform.
         </p>
       </div>
 
-      <div class="footer-links-col">
-        <h4 data-i18n="footer_useful_links">Useful Links</h4>
-        <ul>
-          <li><a href="https://www.indianrail.gov.in/" target="_blank" rel="noopener noreferrer">Indian Railways Official Portal</a></li>
-          <li><a href="https://www.irctc.co.in/" target="_blank" rel="noopener noreferrer">IRCTC Next-Gen E-Ticketing</a></li>
-          <li><a href="https://enquiry.indianrail.gov.in/ntes/" target="_blank" rel="noopener noreferrer">NTES National Train Enquiry System</a></li>
+      <div class="footer-col">
+        <h4 style="color:#ffffff;font-size:0.85rem;margin-bottom:8px;" data-i18n="footer_useful_links">Quick Navigation</h4>
+        <ul style="list-style:none;padding:0;margin:0;font-size:0.8rem;color:#cbd5e1;line-height:1.8;">
+          <li><a href="#pnr" style="color:#cbd5e1;text-decoration:none;">PNR Status Enquiry</a></li>
+          <li><a href="#search" style="color:#cbd5e1;text-decoration:none;">Train Search &amp; Schedule</a></li>
+          <li><a href="#live" style="color:#cbd5e1;text-decoration:none;">Live Train Running Status</a></li>
         </ul>
       </div>
 
-      <div class="footer-links-col">
-        <h4 data-i18n="footer_helpline_security">Helpline &amp; Privacy</h4>
-        <ul>
-          <li><span data-i18n="footer_helpline">Railway Helpline: <strong>139</strong></span></li>
-          <li><span data-i18n="footer_privacy">Data Privacy: No Aadhaar or Passwords stored</span></li>
-          <li><span data-i18n="footer_encryption">Secure HTTPS Encryption</span></li>
+      <div class="footer-col">
+        <h4 style="color:#ffffff;font-size:0.85rem;margin-bottom:8px;" data-i18n="footer_helpline_security">Helpline &amp; Security</h4>
+        <ul style="list-style:none;padding:0;margin:0;font-size:0.8rem;color:#cbd5e1;line-height:1.8;">
+          <li data-i18n="footer_helpline">Railway Helpline: 139 (24x7)</li>
+          <li data-i18n="footer_privacy">Security: No Aadhaar or IRCTC passwords stored.</li>
+          <li data-i18n="footer_encryption">Client-side local sandbox encryption.</li>
         </ul>
       </div>
     </div>
-    <div class="footer-bottom-bar" style="text-align:center;padding:12px 16px;border-top:1px solid rgba(255,255,255,0.1);font-size:0.75rem;color:#94a3b8;">
-      <span>© 2026 RailPlus.in. All Rights Reserved. Trademarks belong to their respective owners.</span>
+    <div class="footer-bottom">
+      <span>&copy; 2026 RailPlus.in — All Rights Reserved. Indian Railways and IRCTC are registered trademarks of their respective owners.</span>
     </div>
   </footer>
 
-  <script src="config.js?v=17.0"></script>
-  <script src="app.js?v=17.0"></script>
+  <script src="config.js?v=20.0"></script>
+  <script src="app.js?v=20.0"></script>
 </body>
 </html>

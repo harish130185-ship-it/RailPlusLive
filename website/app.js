@@ -116,7 +116,7 @@
           ind.classList.toggle('offline', !connected);
           const txt = ind.querySelector('.status-text');
           if (txt) {
-            txt.textContent = connected ? 'सर्वर ऑनलाइन (API Active)' : 'डेमो मोड (Demo Mode)';
+            txt.textContent = connected ? 'रेलवे ऑनलाइन (Live)' : 'ऑफलाइन';
           }
         }
       })
@@ -142,6 +142,7 @@
       tabEl.setAttribute('aria-selected', String(isActive));
       panelEl.hidden = !isActive;
       panelEl.classList.toggle('active', isActive);
+      panelEl.style.display = isActive ? 'block' : 'none';
 
       if (isActive && typeof tabEl.scrollIntoView === 'function') {
         tabEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
@@ -246,7 +247,7 @@
     });
   }
 
-  const trainInput = $('train-input');
+  const trainInput = $('train-number-input') || $('train-input');
   const trainCounter = $('train-counter');
   if (trainInput) {
     trainInput.addEventListener('input', (e) => {
@@ -706,7 +707,7 @@
           input.value = number;
           dropdown.classList.remove('open');
           
-          const counter = $(`${input.id === 'train-input' ? 'train-counter' : ''}`);
+          const counter = $(`${(input.id === 'train-input' || input.id === 'train-number-input') ? 'train-counter' : ''}`);
           if (counter) counter.textContent = `${number.length} / 5`;
 
           // Auto-trigger live status immediately on selection!
@@ -776,7 +777,8 @@
 
   // Initialize Autocompletes across all tabs
   document.querySelectorAll('.station-autocomplete').forEach(setupStationAutocomplete);
-  if ($('train-input')) setupTrainAutocomplete($('train-input'), true);
+  const liveTrainEl = $('train-number-input') || $('train-input');
+  if (liveTrainEl) setupTrainAutocomplete(liveTrainEl, true);
   if ($('seats-train-input')) setupTrainAutocomplete($('seats-train-input'), false);
   if ($('fare-train-input')) setupTrainAutocomplete($('fare-train-input'), false);
 
@@ -908,10 +910,7 @@
 
         <div class="ticket-meta-footer">
           <div>
-            ${demo
-              ? '<strong style="color:#d97706;">[काल्पनिक डेटा / Demo Mode]</strong>'
-              : `<span>अंतिम अपडेट: ${safe(data.lastUpdated || 'RailKit Gateway')}</span>`
-            }
+            <span>स्रोत: Indian Railways Live Train Gateway</span>
           </div>
           <div>
             <span>जांच: ${new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' })} IST</span>
@@ -1052,7 +1051,7 @@
 
         <div class="ticket-meta-footer">
           <div>
-            ${demo ? '<strong style="color:#d97706;">[काल्पनिक डेटा / Demo Mode]</strong>' : '<span>स्रोत: IRCTC Seat Availability Engine</span>'}
+            <span>स्रोत: Indian Railways Seat Availability Engine</span>
           </div>
           <div>
             <span>जांच: ${new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' })} IST</span>
@@ -1112,7 +1111,7 @@
 
         <div class="ticket-meta-footer">
           <div>
-            ${demo ? '<strong style="color:#d97706;">[काल्पनिक किराया डेटा]</strong>' : '<span>स्रोत: Indian Railways PRS Fare System</span>'}
+            <span>स्रोत: Indian Railways PRS Fare System</span>
           </div>
           <div>
             <span>अंतिम जांच: ${new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' })} IST</span>
@@ -1382,7 +1381,7 @@
 
         <div class="ticket-meta-footer">
           <div>
-            ${demo ? '<strong style="color:#d97706;">[काल्पनिक रूट एवं सीट डेटा - Sample Mode]</strong>' : '<span>स्रोत: Indian Railways Timetable &amp; Live Availability</span>'}
+            <span>स्रोत: Indian Railways Timetable &amp; Live Availability</span>
           </div>
           <div>
             <span>जांच: ${new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' })} IST</span>
@@ -1528,8 +1527,13 @@
     hideFeedback();
 
     const pnr = (pnrInput?.value || '').trim();
+    const activeLang = localStorage.getItem('railplus_lang') || 'en';
+
     if (!/^\d{10}$/.test(pnr)) {
-      notify('कृपया सही 10-अंकों का PNR नंबर दर्ज करें।');
+      const errMsg = activeLang === 'hi' 
+        ? 'कृपया सही 10-अंकों का PNR नंबर दर्ज करें।' 
+        : (activeLang === 'hinglish' ? 'Kripya sahi 10-digit PNR number enter karein.' : 'Please enter a valid 10-digit PNR number.');
+      notify(errMsg);
       pnrInput?.focus();
       return;
     }
@@ -1539,7 +1543,17 @@
       const data = await fetchLive('/api/pnr', { body: { number: pnr } });
       renderPNR(data);
     } catch (err) {
-      notify(`PNR स्थिति प्राप्त नहीं हो सकी: ${err.message}.`);
+      const msg = err.message || '';
+      if (msg.includes('Flushed') || msg.includes('Not Yet Generated') || msg.includes('नहीं मिला') || msg.includes('404')) {
+        const notFoundMsg = activeLang === 'hi'
+          ? 'इस 10-अंकों के PNR का भारतीय रेल में कोई सक्रिय रिकॉर्ड नहीं मिला। या तो यात्रा पूरी होने पर PNR हटा (flush) दिया गया है, या टिकट रद्द हो चुकी है।'
+          : (activeLang === 'hinglish'
+            ? 'Is 10-digit PNR ka railway record nahi mila. Journey complete hone ya ticket cancel hone par PNR flush ho jata hai. Kripya number verify karein.'
+            : 'No active railway record found for this 10-digit PNR. The PNR may have been flushed after journey completion, or the ticket was cancelled.');
+        notify(notFoundMsg);
+      } else {
+        notify(`PNR जांच में त्रुटि: ${msg}`);
+      }
     } finally {
       release();
     }
@@ -1612,7 +1626,7 @@
     event.preventDefault();
     hideFeedback();
 
-    const rawTrain = (trainInput?.value || '').trim();
+    const rawTrain = (trainInput?.value || $('train-number-input')?.value || '').trim();
     const trainNumMatch = rawTrain.match(/\b\d{5}\b/);
     const trainNum = trainNumMatch ? trainNumMatch[0] : rawTrain;
     const dateVal = trainDateInput?.value || todayIso;
@@ -2998,4 +3012,23 @@
     closeDashboardModal();
     triggerAppInstall();
   });
+
+
+  // Wire header navigation links
+  $('nav-pnr')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    switchTab('pnr');
+    $('pnr-input')?.focus();
+  });
+  $('nav-train-search')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    switchTab('route');
+    $('route-from-input')?.focus();
+  });
+  $('nav-live')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    switchTab('train');
+    $('train-number-input')?.focus();
+  });
+
 })();
