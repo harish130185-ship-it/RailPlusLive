@@ -257,3 +257,74 @@ test('modular IRCTC gateway reports integration status and prepares booking assi
     assert.equal(assistData.bookingPayload.passengers[0].berth, 'Lower');
   });
 });
+
+test('analytics records visitor events, deduplicates spam, and protects admin dashboard', async () => {
+  await withServer({}, async url => {
+    // 1. Record first pageview
+    const track1 = await fetch(`${url}/api/analytics/track`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X)' },
+      body: JSON.stringify({
+        visitorId: 'vis_test_123',
+        sessionId: 'sess_1',
+        page: '#route',
+        device: 'mobile',
+        isReturning: false,
+        referrer: 'direct'
+      })
+    });
+    assert.equal(track1.status, 200);
+    const res1 = await track1.json();
+    assert.equal(res1.recorded, true);
+
+    // 2. Duplicate pageview within 3 seconds should be deduplicated
+    const trackDup = await fetch(`${url}/api/analytics/track`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        visitorId: 'vis_test_123',
+        sessionId: 'sess_1',
+        page: '#route',
+        device: 'mobile'
+      })
+    });
+    assert.equal(trackDup.status, 200);
+    const resDup = await trackDup.json();
+    assert.equal(resDup.recorded, false);
+    assert.equal(resDup.reason, 'deduplicated');
+
+    // 3. Different page should be recorded
+    const track2 = await fetch(`${url}/api/analytics/track`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        visitorId: 'vis_test_123',
+        sessionId: 'sess_1',
+        page: '#pnr',
+        device: 'mobile'
+      })
+    });
+    assert.equal(track2.status, 200);
+    assert.equal((await track2.json()).recorded, true);
+
+    // 4. Admin analytics unauthorized access rejected
+    const unauth = await fetch(`${url}/api/admin/analytics`);
+    assert.equal(unauth.status, 401);
+
+    const badKey = await fetch(`${url}/api/admin/analytics`, {
+      headers: { 'x-admin-key': 'wrong_password' }
+    });
+    assert.equal(badKey.status, 401);
+
+    // 5. Admin analytics authorized access succeeded with real data
+    const auth = await fetch(`${url}/api/admin/analytics`, {
+      headers: { 'x-admin-key': 'railplus_admin_2026' }
+    });
+    assert.equal(auth.status, 200);
+    const stats = await auth.json();
+    assert.equal(stats.success, true);
+    assert.ok(stats.data.metrics.totalUniqueVisitors >= 1);
+    assert.ok(stats.data.metrics.totalPageViews >= 2);
+    assert.ok(stats.data.topPages.length > 0);
+  });
+});

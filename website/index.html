@@ -141,6 +141,26 @@
     </div>
   </header>
 
+  <!-- Mobile Primary Navigation Bar (Compact App Bar for 320px - 768px, Zero Horizontal Scroll) -->
+  <nav class="mobile-primary-nav" id="mobile-primary-nav" aria-label="Mobile Quick Navigation">
+    <button type="button" class="mobile-nav-btn" data-tab="route" id="mob-nav-route">
+      <span class="mob-nav-icon">🚆</span>
+      <span class="mob-nav-label" data-i18n="nav_train_search">Train Search</span>
+    </button>
+    <button type="button" class="mobile-nav-btn active" data-tab="pnr" id="mob-nav-pnr">
+      <span class="mob-nav-icon">🎫</span>
+      <span class="mob-nav-label" data-i18n="nav_pnr">PNR Status</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" data-tab="train" id="mob-nav-live">
+      <span class="mob-nav-icon">📍</span>
+      <span class="mob-nav-label" data-i18n="nav_live">Live Status</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" data-tab="seats" id="mob-nav-seats">
+      <span class="mob-nav-icon">💺</span>
+      <span class="mob-nav-label" data-i18n="tab_seats">Seats / Book</span>
+    </button>
+  </nav>
+
   <main class="page-main" id="home">
     <div class="content-container">
 
@@ -1008,6 +1028,24 @@
             <span class="dash-arrow">➔</span>
           </button>
 
+          <button type="button" class="dash-menu-row" id="dash-menu-theme">
+            <span class="dash-icon">🌙</span>
+            <div class="dash-info">
+              <strong data-i18n="menu_theme_toggle">Toggle Dark / Light Theme</strong>
+              <small>Switch appearance mode</small>
+            </div>
+            <span class="dash-arrow">➔</span>
+          </button>
+
+          <button type="button" class="dash-menu-row" id="dash-menu-analytics">
+            <span class="dash-icon">📊</span>
+            <div class="dash-info">
+              <strong data-i18n="menu_analytics">Visitor Analytics (Admin)</strong>
+              <small>Protected real traffic metrics</small>
+            </div>
+            <span class="dash-arrow">➔</span>
+          </button>
+
           <button type="button" class="dash-menu-row" id="dash-menu-clear" style="color:#b91c1c;">
             <span class="dash-icon">🗑️</span>
             <div class="dash-info">
@@ -1089,6 +1127,122 @@
     </div>
   </div>
 
+  <!-- 6. Admin Visitor Analytics Modal (Protected) -->
+  <div id="admin-analytics-modal" class="dashboard-modal-overlay" hidden>
+    <div class="dashboard-modal-card" style="max-width:680px;">
+      <div class="modal-header-irctc">
+        <h3>
+          <span>📊</span>
+          <span data-i18n="analytics_modal_title">Visitor Analytics Dashboard (Admin)</span>
+        </h3>
+        <button type="button" id="btn-close-analytics-modal" class="modal-close-btn" aria-label="Close">✕</button>
+      </div>
+
+      <div class="modal-body-scroll">
+        <!-- Admin Key Gate Form (Shown if not yet authenticated) -->
+        <div id="analytics-auth-gate" style="text-align:center;padding:24px 16px;">
+          <div style="font-size:2rem;margin-bottom:10px;">🔒</div>
+          <h4 style="margin:0 0 8px 0;color:var(--text-main);">Admin Authentication Required</h4>
+          <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:16px;">
+            Visitor analytics is restricted to authorized administrators. Enter the admin secret key to view live traffic metrics.
+          </p>
+          <div style="display:inline-flex;gap:8px;max-width:320px;width:100%;">
+            <input type="password" id="analytics-admin-key-input" placeholder="Admin Secret Key" style="flex:1;padding:8px 12px;border:1px solid var(--border-light);border-radius:6px;background:var(--bg-card);" />
+            <button type="button" id="btn-submit-analytics-key" class="submit-button" style="padding:0 18px;height:38px;">Unlock</button>
+          </div>
+          <div id="analytics-auth-error" style="display:none;color:#dc2626;font-size:0.8rem;margin-top:8px;"></div>
+        </div>
+
+        <!-- Analytics Content View (Shown when authenticated) -->
+        <div id="analytics-data-view" style="display:none;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+            <div>
+              <span class="card-badge" style="background:#dcfce7;color:#166534;font-size:0.75rem;">● Live First-Party Real Data</span>
+              <span id="analytics-ga4-badge" class="card-badge" style="background:#e0f2fe;color:#0369a1;font-size:0.75rem;margin-left:6px;">GA4 Integration Ready</span>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button type="button" id="btn-refresh-analytics" style="background:#f1f5f9;border:1px solid #cbd5e1;padding:4px 10px;border-radius:6px;font-size:0.75rem;cursor:pointer;font-weight:600;">🔄 Refresh</button>
+              <button type="button" id="btn-lock-analytics" style="background:#fee2e2;color:#b91c1c;border:none;padding:4px 10px;border-radius:6px;font-size:0.75rem;cursor:pointer;font-weight:600;">Lock</button>
+            </div>
+          </div>
+
+          <!-- Key Metrics Grid -->
+          <div class="analytics-metrics-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:10px;margin-bottom:16px;">
+            <div class="dash-stat-box" style="padding:12px;">
+              <span class="stat-number" id="an-total-visitors" style="font-size:1.4rem;color:#0284c7;">0</span>
+              <span class="stat-desc">Total Unique Visitors</span>
+            </div>
+            <div class="dash-stat-box" style="padding:12px;">
+              <span class="stat-number" id="an-today-visitors" style="font-size:1.4rem;color:#16a34a;">0</span>
+              <span class="stat-desc">Today's Visitors</span>
+            </div>
+            <div class="dash-stat-box" style="padding:12px;">
+              <span class="stat-number" id="an-yesterday-visitors" style="font-size:1.4rem;color:#64748b;">0</span>
+              <span class="stat-desc">Yesterday</span>
+            </div>
+            <div class="dash-stat-box" style="padding:12px;">
+              <span class="stat-number" id="an-7days-visitors" style="font-size:1.4rem;color:#ea580c;">0</span>
+              <span class="stat-desc">Last 7 Days</span>
+            </div>
+            <div class="dash-stat-box" style="padding:12px;">
+              <span class="stat-number" id="an-30days-visitors" style="font-size:1.4rem;color:#0f294a;">0</span>
+              <span class="stat-desc">Last 30 Days</span>
+            </div>
+            <div class="dash-stat-box" style="padding:12px;">
+              <span class="stat-number" id="an-total-pageviews" style="font-size:1.4rem;color:#7c3aed;">0</span>
+              <span class="stat-desc">Total Page Views</span>
+            </div>
+          </div>
+
+          <!-- Devices Breakdown & Returning Visitors -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+            <div style="background:var(--bg-card-subtle);border:1px solid var(--border-light);border-radius:8px;padding:12px;">
+              <h5 style="margin:0 0 8px 0;font-size:0.85rem;color:var(--text-main);">Mobile vs Desktop</h5>
+              <div id="an-device-bar" style="height:14px;background:#e2e8f0;border-radius:7px;display:flex;overflow:hidden;margin-bottom:8px;">
+                <div id="an-device-mobile-bar" style="background:#ea580c;width:50%;" title="Mobile"></div>
+                <div id="an-device-desktop-bar" style="background:#0284c7;width:50%;" title="Desktop"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--text-muted);">
+                <span>📱 Mobile: <strong id="an-mobile-percent" style="color:#ea580c;">50%</strong></span>
+                <span>💻 Desktop: <strong id="an-desktop-percent" style="color:#0284c7;">50%</strong></span>
+              </div>
+            </div>
+
+            <div style="background:var(--bg-card-subtle);border:1px solid var(--border-light);border-radius:8px;padding:12px;">
+              <h5 style="margin:0 0 8px 0;font-size:0.85rem;color:var(--text-main);">Visitor Loyalty</h5>
+              <div style="display:flex;align-items:center;justify-content:space-between;height:40px;">
+                <div>
+                  <div style="font-size:1.2rem;font-weight:700;color:var(--text-main);" id="an-returning-count">0</div>
+                  <div style="font-size:0.7rem;color:var(--text-muted);">Returning Visitors</div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-size:1.2rem;font-weight:700;color:#16a34a;" id="an-returning-rate">0%</div>
+                  <div style="font-size:0.7rem;color:var(--text-muted);">Repeat Rate</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Top Visited Sections Table -->
+          <div style="background:var(--bg-card-subtle);border:1px solid var(--border-light);border-radius:8px;padding:12px;margin-bottom:16px;">
+            <h5 style="margin:0 0 10px 0;font-size:0.85rem;color:var(--text-main);">Most Visited Sections &amp; Features</h5>
+            <div id="an-top-pages-list" style="display:flex;flex-direction:column;gap:6px;">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+
+          <!-- Daily & Monthly Trends -->
+          <div style="background:var(--bg-card-subtle);border:1px solid var(--border-light);border-radius:8px;padding:12px;">
+            <h5 style="margin:0 0 10px 0;font-size:0.85rem;color:var(--text-main);">Daily Visitor &amp; Pageview Activity</h5>
+            <div id="an-daily-trends-table" style="max-height:160px;overflow-y:auto;font-size:0.78rem;">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Site Footer -->
   <footer class="site-footer">
     <div class="footer-inner">
@@ -1108,6 +1262,7 @@
           <li><a href="#pnr" style="color:#cbd5e1;text-decoration:none;">PNR Status Enquiry</a></li>
           <li><a href="#search" style="color:#cbd5e1;text-decoration:none;">Train Search &amp; Schedule</a></li>
           <li><a href="#live" style="color:#cbd5e1;text-decoration:none;">Live Train Running Status</a></li>
+          <li><a href="#admin-analytics" id="footer-analytics-link" style="color:#f59e0b;text-decoration:none;font-weight:600;">📊 Visitor Analytics (Admin)</a></li>
         </ul>
       </div>
 

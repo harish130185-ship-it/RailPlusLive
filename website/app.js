@@ -130,6 +130,67 @@
       });
   }
 
+  // ==========================================================================
+  // PRIVACY-CONSCIOUS VISITOR ANALYTICS TRACKER (First-Party & GA4 Ready)
+  // ==========================================================================
+  const VISITOR_ID_KEY = 'rp_visitor_id';
+  const SESSION_ID_KEY = 'rp_session_id';
+
+  function getOrSetVisitorId() {
+    let vid = localStorage.getItem(VISITOR_ID_KEY);
+    let isReturning = true;
+    if (!vid) {
+      isReturning = false;
+      vid = 'v_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+      try { localStorage.setItem(VISITOR_ID_KEY, vid); } catch (_) {}
+    }
+    return { vid, isReturning };
+  }
+
+  function getOrSetSessionId() {
+    let sid = sessionStorage.getItem(SESSION_ID_KEY);
+    if (!sid) {
+      sid = 's_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+      try { sessionStorage.setItem(SESSION_ID_KEY, sid); } catch (_) {}
+    }
+    return sid;
+  }
+
+  let lastTrackedPage = '';
+  let lastTrackedTime = 0;
+
+  async function trackPageView(page = '/') {
+    const now = Date.now();
+    if (lastTrackedPage === page && now - lastTrackedTime < 3000) {
+      return; // prevent duplicate rapid triggers in PWA
+    }
+    lastTrackedPage = page;
+    lastTrackedTime = now;
+
+    try {
+      const { vid, isReturning } = getOrSetVisitorId();
+      const sid = getOrSetSessionId();
+      const device = window.innerWidth <= 768 ? 'mobile' : 'desktop';
+      let referrer = 'direct';
+      try {
+        if (document.referrer) referrer = new URL(document.referrer, window.location.href).hostname;
+      } catch (_) {}
+
+      fetchLive('/api/analytics/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: {
+          visitorId: vid,
+          sessionId: sid,
+          page,
+          device,
+          isReturning,
+          referrer
+        }
+      }).catch(() => {});
+    } catch (_) {}
+  }
+
   // Tab Switching
   function switchTab(name) {
     TAB_NAMES.forEach((n) => {
@@ -149,6 +210,16 @@
       }
     });
 
+    // Synchronize Mobile Primary Navigation Quick Bar
+    document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+      const targetTab = btn.dataset.tab;
+      const isMatch = targetTab === name || (targetTab === 'seats' && (name === 'seats' || name === 'fare'));
+      btn.classList.toggle('active', isMatch);
+    });
+
+    // Record real analytics pageview
+    trackPageView('#' + name);
+
     hideFeedback();
     const res = $('result');
     if (res) res.hidden = true;
@@ -156,6 +227,14 @@
 
   TAB_NAMES.forEach(k => {
     $(`tab-${k}`)?.addEventListener('click', () => switchTab(k));
+  });
+
+  // Attach click listeners to Mobile Primary Navigation buttons
+  document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      if (tab) switchTab(tab);
+    });
   });
 
   // Default to PNR Tab on page load
@@ -1205,10 +1284,65 @@
     return ['SL', '3A', '2A', '1A'];
   }
 
+  // Format running days (e.g. 1011101) into IRCTC-style day pill chips
+  function formatRunningDays(days) {
+    if (!days) return '<span class="days-summary-text">नियमित सेवा</span>';
+    const raw = String(days).trim();
+    if (raw === '1111111') {
+      return `
+        <div class="running-days-chips" title="Runs on all 7 days">
+          <span class="days-label">दौड़ने के दिन:</span>
+          <div class="days-pills">
+            <span class="day-chip active" title="Monday (सोम)">M</span>
+            <span class="day-chip active" title="Tuesday (मंगल)">T</span>
+            <span class="day-chip active" title="Wednesday (बुध)">W</span>
+            <span class="day-chip active" title="Thursday (गुरु)">T</span>
+            <span class="day-chip active" title="Friday (शुक्र)">F</span>
+            <span class="day-chip active" title="Saturday (शनि)">S</span>
+            <span class="day-chip active" title="Sunday (रवि)">S</span>
+          </div>
+          <span class="days-summary-text" style="color:#16a34a;">प्रतिदिन (Daily)</span>
+        </div>
+      `;
+    }
+
+    if (/^[01]{7}$/.test(raw)) {
+      const dayDefs = [
+        { letter: 'M', hi: 'सोम', name: 'Monday' },
+        { letter: 'T', hi: 'मंगल', name: 'Tuesday' },
+        { letter: 'W', hi: 'बुध', name: 'Wednesday' },
+        { letter: 'T', hi: 'गुरु', name: 'Thursday' },
+        { letter: 'F', hi: 'शुक्र', name: 'Friday' },
+        { letter: 'S', hi: 'शनि', name: 'Saturday' },
+        { letter: 'S', hi: 'रवि', name: 'Sunday' }
+      ];
+
+      const chips = dayDefs.map((d, idx) => {
+        const runs = raw[idx] === '1';
+        return `<span class="day-chip ${runs ? 'active' : 'inactive'}" title="${d.name} (${d.hi}): ${runs ? 'चलती है' : 'नहीं चलती'}">${d.letter}</span>`;
+      }).join('');
+
+      const activeDaysHi = dayDefs.filter((_, idx) => raw[idx] === '1').map(d => d.hi).join(', ');
+
+      return `
+        <div class="running-days-chips" title="चलने के दिन: ${activeDaysHi}">
+          <span class="days-label">दौड़ने के दिन:</span>
+          <div class="days-pills">
+            ${chips}
+          </div>
+          <span class="days-summary-text">(${activeDaysHi})</span>
+        </div>
+      `;
+    }
+
+    return `<span class="days-summary-text">दौड़ने के दिन: ${safe(raw)}</span>`;
+  }
+
   function applySeatDataToCard(data, fareEl, statusEl, predEl, card = null) {
     if (!data) return;
+    const payload = (data?.data && (data.data.fare || data.data.availability)) ? data.data : data;
 
-    const totalFare = Number(data.fare?.total || data.fare?.totalFare || 0);
+    const totalFare = Number(payload.fare?.total || payload.fare?.totalFare || (typeof payload.fare === 'number' ? payload.fare : 0));
     if (fareEl && totalFare > 0) {
       fareEl.textContent = `₹${totalFare.toLocaleString('en-IN')}`;
     }
@@ -1228,9 +1362,11 @@
       }
     }
 
-    const firstAvail = Array.isArray(data.availability) ? data.availability[0] : null;
+    const availList = Array.isArray(payload.availability) ? payload.availability : (payload.availability ? [payload.availability] : []);
+    const firstAvail = availList[0] || (payload.status ? payload : null);
+
     if (statusEl && firstAvail) {
-      const rawStatus = (firstAvail.status || '').toUpperCase();
+      const rawStatus = (typeof firstAvail === 'string' ? firstAvail : (firstAvail.status || firstAvail.currentStatus || '')).toUpperCase();
       statusEl.className = 'class-status-text';
 
       if (rawStatus.includes('AVAILABLE') || rawStatus.includes('CURR_AVBL') || rawStatus.startsWith('AVL')) {
@@ -1250,8 +1386,9 @@
         statusEl.textContent = rawStatus || 'जांचें';
       }
 
-      if (predEl && firstAvail.prediction) {
-        predEl.textContent = `${firstAvail.prediction} Chance`;
+      const prediction = typeof firstAvail === 'object' ? (firstAvail.prediction || firstAvail.confirmProbability) : null;
+      if (predEl && prediction) {
+        predEl.textContent = `${prediction} Chance`;
         predEl.hidden = false;
       }
     }
@@ -1296,7 +1433,10 @@
   }
 
   async function fetchClassSeat(trainNo, fromCode, toCode, date, cls) {
-    const cacheKey = `${trainNo}_${fromCode}_${toCode}_${date}_${cls}`;
+    const safeFrom = fromCode || extractStationCode($('route-from-input'));
+    const safeTo = toCode || extractStationCode($('route-to-input'));
+    const safeDate = (date && date !== 'undefined' && date !== 'null') ? date : ($('route-date-input')?.value || todayIso);
+    const cacheKey = `${trainNo}_${safeFrom}_${safeTo}_${safeDate}_${cls}`;
     const fareEl = document.getElementById(`fare-${trainNo}-${cls}`);
     const statusEl = document.getElementById(`status-${trainNo}-${cls}`);
     const predEl = document.getElementById(`pred-${trainNo}-${cls}`);
@@ -1313,7 +1453,7 @@
     }
 
     try {
-      const url = `/api/seats?number=${encodeURIComponent(trainNo)}&from=${encodeURIComponent(fromCode)}&to=${encodeURIComponent(toCode)}&date=${encodeURIComponent(date)}&class=${encodeURIComponent(cls)}&quota=GN`;
+      const url = `/api/seats?number=${encodeURIComponent(trainNo)}&from=${encodeURIComponent(safeFrom)}&to=${encodeURIComponent(safeTo)}&date=${encodeURIComponent(safeDate)}&class=${encodeURIComponent(cls)}&quota=GN`;
       const res = await fetchLive(url);
       routeSeatCache.set(cacheKey, res);
       applySeatDataToCard(res, fareEl, statusEl, predEl, cardEl);
@@ -1384,7 +1524,7 @@
               ${t.nameHindi ? `<span style="font-size:0.8rem;color:#475569;">(${safe(t.nameHindi)})</span>` : ''}
             </div>
             <div class="train-days-info">
-              ${t.runningDays === '1111111' ? '<span>प्रतिदिन (All Days)</span>' : (t.runningDays ? `<span>दौड़ने के दिन: ${safe(t.runningDays)}</span>` : '<span>नियमित सेवा</span>')}
+              ${formatRunningDays(t.runningDays)}
             </div>
           </div>
 
@@ -2069,6 +2209,10 @@
       lbl_pax_nickname: 'Optional Nickname (e.g. Papa, Sister)',
       btn_save_passenger_master: 'Save Passenger Details',
       btn_login: 'Login',
+      nav_seats_booking: 'Seats / Book',
+      menu_analytics: 'Visitor Analytics (Admin)',
+      menu_theme_toggle: 'Toggle Dark / Light Theme',
+      analytics_modal_title: 'Visitor Analytics Dashboard (Admin)',
       login_modal_title: 'Login to RailPlus',
       lbl_login_identifier: 'Mobile Number or Email',
       lbl_login_name: 'Your Name (Optional)',
@@ -2203,6 +2347,10 @@
       lbl_pax_nickname: 'उपनाम (वैकल्पिक उदा. पापा, दीदी)',
       btn_save_passenger_master: 'यात्री मास्टर में सेव करें',
       btn_login: 'लॉगिन',
+      nav_seats_booking: 'सीट व किराया',
+      menu_analytics: 'विज़िटर एनालिटिक्स (एडमिन)',
+      menu_theme_toggle: 'डार्क / लाइट थीम बदलें',
+      analytics_modal_title: 'विज़िटर एनालिटिक्स डैशबोर्ड (एडमिन)',
       login_modal_title: 'RailPlus लॉगिन',
       lbl_login_identifier: 'मोबाइल नंबर या ईमेल',
       lbl_login_name: 'आपका नाम (वैकल्पिक)',
@@ -2337,6 +2485,10 @@
       lbl_pax_nickname: 'Optional Nickname (e.g. Papa, Bhai)',
       btn_save_passenger_master: 'Passenger Master me Save Karein',
       btn_login: 'Login Karein',
+      nav_seats_booking: 'Seats / Book',
+      menu_analytics: 'Visitor Analytics (Admin)',
+      menu_theme_toggle: 'Theme Change Karein',
+      analytics_modal_title: 'Visitor Analytics Dashboard (Admin)',
       login_modal_title: 'RailPlus Login',
       lbl_login_identifier: 'Mobile Number ya Email',
       lbl_login_name: 'Aapka Name (Optional)',
@@ -3421,6 +3573,186 @@
     e.preventDefault();
     switchTab('train');
     $('train-number-input')?.focus();
+  });
+
+  // ==========================================================================
+  // ADMIN VISITOR ANALYTICS DASHBOARD
+  // ==========================================================================
+  let adminSessionKey = sessionStorage.getItem('railplus_admin_key') || '';
+
+  function openAnalyticsModal() {
+    const modal = $('admin-analytics-modal');
+    if (!modal) return;
+    modal.hidden = false;
+    modal.style.display = 'flex';
+
+    if (adminSessionKey) {
+      loadAnalyticsData();
+    } else {
+      showAnalyticsAuthGate();
+    }
+  }
+
+  function closeAnalyticsModal() {
+    const modal = $('admin-analytics-modal');
+    if (!modal) return;
+    modal.hidden = true;
+    modal.style.display = 'none';
+  }
+
+  function showAnalyticsAuthGate(errorMsg = '') {
+    const gate = $('analytics-auth-gate');
+    const dataView = $('analytics-data-view');
+    const errEl = $('analytics-auth-error');
+    if (gate) gate.style.display = 'block';
+    if (dataView) dataView.style.display = 'none';
+    if (errEl) {
+      if (errorMsg) {
+        errEl.textContent = errorMsg;
+        errEl.style.display = 'block';
+      } else {
+        errEl.style.display = 'none';
+      }
+    }
+  }
+
+  async function loadAnalyticsData() {
+    const gate = $('analytics-auth-gate');
+    const dataView = $('analytics-data-view');
+    try {
+      const res = await fetchLive(`/api/admin/analytics?adminKey=${encodeURIComponent(adminSessionKey)}`);
+      const data = res?.metrics ? res : (res?.data || null);
+      if (data && data.metrics) {
+        if (gate) gate.style.display = 'none';
+        if (dataView) dataView.style.display = 'block';
+        renderAnalyticsData(data);
+      } else {
+        throw new Error('Unauthorized');
+      }
+    } catch (err) {
+      adminSessionKey = '';
+      sessionStorage.removeItem('railplus_admin_key');
+      showAnalyticsAuthGate('Invalid Admin Key. Please try again.');
+    }
+  }
+
+  function renderAnalyticsData(data) {
+    const m = data.metrics || {};
+    if ($('an-total-visitors')) $('an-total-visitors').textContent = (m.totalUniqueVisitors || 0).toLocaleString('en-IN');
+    if ($('an-today-visitors')) $('an-today-visitors').textContent = (m.todayVisitors || 0).toLocaleString('en-IN');
+    if ($('an-yesterday-visitors')) $('an-yesterday-visitors').textContent = (m.yesterdayVisitors || 0).toLocaleString('en-IN');
+    if ($('an-7days-visitors')) $('an-7days-visitors').textContent = (m.last7DaysVisitors || 0).toLocaleString('en-IN');
+    if ($('an-30days-visitors')) $('an-30days-visitors').textContent = (m.last30DaysVisitors || 0).toLocaleString('en-IN');
+    if ($('an-total-pageviews')) $('an-total-pageviews').textContent = (m.totalPageViews || 0).toLocaleString('en-IN');
+
+    // Devices
+    const dev = data.devices || { percentages: { mobile: 50, desktop: 50 } };
+    const mobP = dev.percentages?.mobile ?? 0;
+    const dskP = dev.percentages?.desktop ?? 0;
+    if ($('an-mobile-percent')) $('an-mobile-percent').textContent = `${mobP}%`;
+    if ($('an-desktop-percent')) $('an-desktop-percent').textContent = `${dskP}%`;
+    if ($('an-device-mobile-bar')) $('an-device-mobile-bar').style.width = `${mobP}%`;
+    if ($('an-device-desktop-bar')) $('an-device-desktop-bar').style.width = `${dskP}%`;
+
+    // Returning
+    if ($('an-returning-count')) $('an-returning-count').textContent = (m.returningVisitorsCount || 0).toLocaleString('en-IN');
+    if ($('an-returning-rate')) $('an-returning-rate').textContent = `${m.returningPercentage || 0}%`;
+
+    // Top Pages
+    const pagesEl = $('an-top-pages-list');
+    if (pagesEl) {
+      const topList = data.topPages || [];
+      if (topList.length === 0) {
+        pagesEl.innerHTML = '<p style="color:#64748b;font-size:0.8rem;margin:4px 0;">No pageviews recorded yet.</p>';
+      } else {
+        pagesEl.innerHTML = topList.map(p => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px dashed #e2e8f0;font-size:0.8rem;">
+            <span><strong style="color:#0f294a;">${safe(p.page)}</strong></span>
+            <span><span style="font-weight:700;">${p.views}</span> views (${p.percentage}%)</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    // Daily Trends
+    const trendsEl = $('an-daily-trends-table');
+    if (trendsEl) {
+      const daily = data.dailyTrends || [];
+      if (daily.length === 0) {
+        trendsEl.innerHTML = '<p style="color:#64748b;font-size:0.8rem;margin:4px 0;">No trend data yet.</p>';
+      } else {
+        trendsEl.innerHTML = `
+          <table style="width:100%;border-collapse:collapse;font-size:0.75rem;">
+            <thead>
+              <tr style="border-bottom:1px solid #cbd5e1;color:#64748b;text-align:left;">
+                <th style="padding:4px;">Date</th>
+                <th style="padding:4px;">Unique Visitors</th>
+                <th style="padding:4px;">Page Views</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${daily.map(d => `
+                <tr style="border-bottom:1px solid #f1f5f9;">
+                  <td style="padding:4px;">${safe(d.date)}</td>
+                  <td style="padding:4px;font-weight:700;color:#0284c7;">${d.uniqueVisitors}</td>
+                  <td style="padding:4px;font-weight:700;color:#16a34a;">${d.pageViews}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      }
+    }
+
+    // Provider & GA4 status
+    const ga4El = $('analytics-ga4-badge');
+    if (ga4El) {
+      if (data.provider?.ga4Configured) {
+        ga4El.textContent = `GA4 Active (${data.provider.ga4MeasurementId})`;
+        ga4El.style.background = '#dcfce7';
+        ga4El.style.color = '#166534';
+      } else {
+        ga4El.textContent = 'GA4 Optional (Ready in .env)';
+      }
+    }
+  }
+
+  $('btn-submit-analytics-key')?.addEventListener('click', async () => {
+    const entered = ($('analytics-admin-key-input')?.value || '').trim();
+    if (!entered) {
+      showAnalyticsAuthGate('Please enter the admin key.');
+      return;
+    }
+    adminSessionKey = entered;
+    sessionStorage.setItem('railplus_admin_key', entered);
+    loadAnalyticsData();
+  });
+
+  $('btn-refresh-analytics')?.addEventListener('click', loadAnalyticsData);
+  $('btn-lock-analytics')?.addEventListener('click', () => {
+    adminSessionKey = '';
+    sessionStorage.removeItem('railplus_admin_key');
+    if ($('analytics-admin-key-input')) $('analytics-admin-key-input').value = '';
+    showAnalyticsAuthGate();
+  });
+
+  $('btn-close-analytics-modal')?.addEventListener('click', closeAnalyticsModal);
+  $('admin-analytics-modal')?.addEventListener('click', (e) => {
+    if (e.target === $('admin-analytics-modal')) closeAnalyticsModal();
+  });
+
+  $('dash-menu-analytics')?.addEventListener('click', () => {
+    closeDashboardModal();
+    openAnalyticsModal();
+  });
+
+  $('footer-analytics-link')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    openAnalyticsModal();
+  });
+
+  $('dash-menu-theme')?.addEventListener('click', () => {
+    $('btn-theme-toggle')?.click();
   });
 
   // Initialize Paytm-style user profile UI

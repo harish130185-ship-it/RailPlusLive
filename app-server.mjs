@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { irctcGateway } from './lib/irctc-b2b-gateway.mjs';
+import { recordEvent, getAnalyticsSummary, clearAnalyticsData } from './lib/analytics-service.mjs';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const SITE = path.join(ROOT, 'website');
@@ -528,6 +529,42 @@ export function createHandler({ apiKey = process.env.RAILKIT_API_KEY, apiUrl = p
         const body = await readBody(req);
         const result = await irctcGateway.submitBooking(body || {});
         return sendJson(res, 200, result);
+      }
+
+      if (pathname === '/api/analytics/track') {
+        if (req.method !== 'POST') return error(res, 405, 'Method not allowed');
+        const body = await readBody(req);
+        const userAgent = req.headers['user-agent'] || '';
+        const result = recordEvent({
+          visitorId: body?.visitorId,
+          sessionId: body?.sessionId,
+          page: body?.page,
+          device: body?.device,
+          isReturning: body?.isReturning,
+          referrer: body?.referrer,
+          userAgent
+        });
+        return sendJson(res, 200, { success: true, ...result });
+      }
+
+      if (pathname === '/api/admin/analytics') {
+        if (req.method !== 'GET') return error(res, 405, 'Method not allowed');
+        const adminKey = req.headers['x-admin-key'] || requestUrl.searchParams.get('adminKey');
+        const expectedKey = process.env.ADMIN_API_KEY || 'railplus_admin_2026';
+        if (!adminKey || adminKey !== expectedKey) {
+          return error(res, 401, 'Unauthorized: Admin authentication key required.');
+        }
+        return sendJson(res, 200, getAnalyticsSummary());
+      }
+
+      if (pathname === '/api/admin/analytics/clear') {
+        if (req.method !== 'POST') return error(res, 405, 'Method not allowed');
+        const adminKey = req.headers['x-admin-key'] || requestUrl.searchParams.get('adminKey');
+        const expectedKey = process.env.ADMIN_API_KEY || 'railplus_admin_2026';
+        if (!adminKey || adminKey !== expectedKey) {
+          return error(res, 401, 'Unauthorized: Admin authentication key required.');
+        }
+        return sendJson(res, 200, clearAnalyticsData());
       }
       if (pathname === '/api/pnr') {
         if (req.method !== 'POST') return error(res, 405, 'Use POST /api/pnr');
