@@ -231,6 +231,84 @@ test('auth/login stores IRCTC username only and rejects any password/OTP', async
   });
 });
 
+test('passenger master is login-wise: isolated per user account and prevents data leaks', async () => {
+  await withServer({}, async url => {
+    // 1. User A logs in
+    const loginA = await (await fetch(`${url}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ emailOrMobile: '9876543210', name: 'User A' })
+    })).json();
+    const userAId = loginA.user.id;
+
+    // 2. User B logs in
+    const loginB = await (await fetch(`${url}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ emailOrMobile: '9123456780', name: 'User B' })
+    })).json();
+    const userBId = loginB.user.id;
+
+    assert.notEqual(userAId, userBId);
+
+    // Clean test state for isolation test
+    await fetch(`${url}/api/user/master/passengers?userId=${userAId}&all=true`, { method: 'DELETE' });
+    await fetch(`${url}/api/user/master/passengers?userId=${userBId}&all=true`, { method: 'DELETE' });
+
+    // 3. User A adds a passenger
+    const addARes = await fetch(`${url}/api/user/master/passengers`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: userAId,
+        passenger: { name: 'User A Family', age: 35, gender: 'Male', berth: 'Lower' }
+      })
+    });
+    assert.equal(addARes.status, 200);
+
+    // 4. User B checks their master list: MUST BE EMPTY, User A's data must NEVER be visible
+    const resB = await fetch(`${url}/api/user/master/passengers?userId=${userBId}`);
+    assert.equal(resB.status, 200);
+    const getB = await resB.json();
+    assert.equal(getB.passengers.length, 0);
+
+    // 5. User B adds their own passenger
+    const addB = await fetch(`${url}/api/user/master/passengers`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: userBId,
+        passenger: { name: 'User B Friend', age: 24, gender: 'Female', berth: 'Upper' }
+      })
+    });
+    assert.equal(addB.status, 200);
+
+    // 6. User A checks their master list: MUST ONLY see User A's passenger
+    const getA = await (await fetch(`${url}/api/user/master/passengers?userId=${userAId}`)).json();
+    assert.equal(getA.passengers.length, 1);
+    assert.equal(getA.passengers[0].name, 'User A Family');
+
+    // 7. User B checks their master list: MUST ONLY see User B's passenger
+    const getB2 = await (await fetch(`${url}/api/user/master/passengers?userId=${userBId}`)).json();
+    assert.equal(getB2.passengers.length, 1);
+    assert.equal(getB2.passengers[0].name, 'User B Friend');
+
+    // 8. User A deletes their passenger: User B's passenger must remain intact
+    const paxAId = getA.passengers[0].id;
+    const delA = await fetch(`${url}/api/user/master/passengers?userId=${userAId}&id=${paxAId}`, {
+      method: 'DELETE'
+    });
+    assert.equal(delA.status, 200);
+
+    const getAAfterDel = await (await fetch(`${url}/api/user/master/passengers?userId=${userAId}`)).json();
+    assert.equal(getAAfterDel.passengers.length, 0);
+
+    const getBAfterDel = await (await fetch(`${url}/api/user/master/passengers?userId=${userBId}`)).json();
+    assert.equal(getBAfterDel.passengers.length, 1);
+    assert.equal(getBAfterDel.passengers[0].name, 'User B Friend');
+  });
+});
+
 test('modular IRCTC gateway reports integration status and prepares booking assistance', async () => {
   await withServer({}, async url => {
     const statusResp = await fetch(`${url}/api/integration/status`);

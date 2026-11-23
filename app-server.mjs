@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { irctcGateway } from './lib/irctc-b2b-gateway.mjs';
 import { recordEvent, getAnalyticsSummary, clearAnalyticsData } from './lib/analytics-service.mjs';
+import { getUserPassengers, setUserPassengers, addUserPassenger, deleteUserPassenger, clearUserMasterData } from './lib/user-master-service.mjs';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const SITE = path.join(ROOT, 'website');
@@ -503,8 +504,9 @@ export function createHandler({ apiKey = process.env.RAILKIT_API_KEY, apiUrl = p
           return error(res, 400, 'IRCTC यूज़रनेम में केवल 3 से 30 अक्षर या अंक होने चाहिए (कोई स्पेस नहीं)।');
         }
 
+        const stableId = 'rp_' + emailOrMobile.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
         const user = {
-          id: 'rp_' + Date.now().toString(36),
+          id: stableId,
           emailOrMobile,
           name: name || (isMobile ? `Traveler ${emailOrMobile.slice(-4)}` : emailOrMobile.split('@')[0]),
           irctcUsername: irctcUsername || null,
@@ -516,6 +518,59 @@ export function createHandler({ apiKey = process.env.RAILKIT_API_KEY, apiUrl = p
           user,
           message: 'RailPlus में सफलतापूर्वक लॉगिन हो गया।'
         });
+      }
+
+      if (pathname === '/api/user/master/passengers') {
+        if (!allowRequest(req)) return error(res, 429, 'बहुत सारे अनुरोध किए गए। 1 मिनट बाद कोशिश करें।');
+
+        if (req.method === 'GET') {
+          const userId = requestUrl.searchParams.get('userId') || req.headers['x-user-id'];
+          if (!userId) return error(res, 400, 'User ID is required');
+          const passengers = getUserPassengers(userId);
+          return sendJson(res, 200, { success: true, userId, passengers });
+        }
+
+        if (req.method === 'POST') {
+          const body = await readBody(req);
+          const userId = text(body?.userId) || req.headers['x-user-id'];
+          if (!userId) return error(res, 400, 'User ID is required');
+
+          if (Array.isArray(body?.passengers)) {
+            const updated = setUserPassengers(userId, body.passengers);
+            return sendJson(res, 200, { success: true, userId, passengers: updated });
+          } else if (body?.passenger) {
+            const result = addUserPassenger(userId, body.passenger);
+            if (result && result.error === 'DUPLICATE') {
+              return error(res, 400, result.message);
+            }
+            if (!result) return error(res, 400, 'Invalid passenger data');
+            return sendJson(res, 200, { success: true, userId, passenger: result, passengers: getUserPassengers(userId) });
+          }
+          return error(res, 400, 'Passengers payload or passenger object required');
+        }
+
+        if (req.method === 'DELETE') {
+          let body = {};
+          if (req.headers['content-length'] && Number(req.headers['content-length']) > 0) {
+            body = await readBody(req).catch(() => ({}));
+          }
+          const userId = requestUrl.searchParams.get('userId') || text(body?.userId) || req.headers['x-user-id'];
+          const passengerId = requestUrl.searchParams.get('id') || text(body?.id);
+          const clearAll = requestUrl.searchParams.get('all') === 'true' || body?.all === true;
+
+          if (!userId) return error(res, 400, 'User ID is required');
+
+          if (clearAll) {
+            clearUserMasterData(userId);
+            return sendJson(res, 200, { success: true, userId, passengers: [] });
+          }
+
+          if (!passengerId) return error(res, 400, 'User ID and Passenger ID required');
+          deleteUserPassenger(userId, passengerId);
+          return sendJson(res, 200, { success: true, userId, passengers: getUserPassengers(userId) });
+        }
+
+        return error(res, 405, 'Method not allowed');
       }
 
       if (pathname === '/api/integration/status') {

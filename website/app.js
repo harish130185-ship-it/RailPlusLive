@@ -2621,13 +2621,77 @@
   $('chip-date-dayafter')?.addEventListener('click', () => setHeroDateOffset(2));
 
   // ==========================================================================
-  // PASSENGER MASTER MANAGEMENT (CRUD + Local Storage Sandboxing)
+  // PASSENGER MASTER MANAGEMENT (Login-Wise User Isolation & Cloud Sync)
   // ==========================================================================
-  const PASSENGER_STORAGE_KEY = 'railplus_passengers';
+  function getCurrentUser() {
+    try {
+      return typeof getUserProfile === 'function' ? getUserProfile() : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function getPassengerStorageKey() {
+    const u = getCurrentUser();
+    if (!u || (!u.id && !u.emailOrMobile)) {
+      return null;
+    }
+    const safeId = String(u.id || u.emailOrMobile).replace(/[^a-zA-Z0-9_-]/g, '_');
+    return `railplus_passengers_${safeId}`;
+  }
+
+  function migrateLegacyPassengers(user) {
+    if (!user) return;
+    const safeId = String(user.id || user.emailOrMobile).replace(/[^a-zA-Z0-9_-]/g, '_');
+    const userKey = `railplus_passengers_${safeId}`;
+    try {
+      const oldLegacyData = localStorage.getItem('railplus_passengers');
+      if (oldLegacyData) {
+        const oldPassengers = JSON.parse(oldLegacyData);
+        if (Array.isArray(oldPassengers) && oldPassengers.length > 0) {
+          const existingUserPassengers = JSON.parse(localStorage.getItem(userKey) || '[]');
+          if (existingUserPassengers.length === 0) {
+            localStorage.setItem(userKey, JSON.stringify(oldPassengers));
+            syncPassengersToServer(user.id || user.emailOrMobile, oldPassengers);
+          }
+        }
+        // Remove common legacy key so it is never leaked or shared with other logins!
+        localStorage.removeItem('railplus_passengers');
+      }
+    } catch (_) {}
+  }
+
+  async function syncPassengersToServer(userId, list) {
+    if (!userId) return;
+    try {
+      await fetchLive('/api/user/master/passengers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, passengers: list })
+      });
+    } catch (_) {}
+  }
+
+  async function loadPassengersFromServer(userId) {
+    if (!userId) return;
+    try {
+      const res = await fetchLive(`/api/user/master/passengers?userId=${encodeURIComponent(userId)}`);
+      if (res && res.success && Array.isArray(res.passengers)) {
+        const key = getPassengerStorageKey();
+        if (key && res.passengers.length > 0) {
+          localStorage.setItem(key, JSON.stringify(res.passengers));
+          renderPassengerMasterList();
+          updateDashboardStats();
+        }
+      }
+    } catch (_) {}
+  }
 
   function getSavedPassengers() {
+    const key = getPassengerStorageKey();
+    if (!key) return [];
     try {
-      const data = localStorage.getItem(PASSENGER_STORAGE_KEY);
+      const data = localStorage.getItem(key);
       return data ? JSON.parse(data) : [];
     } catch (_) {
       return [];
@@ -2635,19 +2699,84 @@
   }
 
   function savePassengerList(list) {
+    const u = getCurrentUser();
+    const key = getPassengerStorageKey();
+    if (!u || !key) {
+      alert('कृपया पहले लॉगिन करें। आपका पैसेंजर मास्टर आपके लॉगिन अकाउंट से सुरक्षित रहेगा।');
+      openLoginModal();
+      return false;
+    }
     try {
-      localStorage.setItem(PASSENGER_STORAGE_KEY, JSON.stringify(list));
+      localStorage.setItem(key, JSON.stringify(list));
       updateDashboardStats();
-    } catch (_) {}
+      syncPassengersToServer(u.id || u.emailOrMobile, list);
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   function renderPassengerMasterList() {
     const listEl = $('saved-passengers-list') || $('passenger-master-list');
-    if (!listEl) return;
+    const u = getCurrentUser();
+
+    // Ensure status banner element exists
+    let statusEl = $('passenger-master-user-header');
+    if (!statusEl && listEl && listEl.parentNode) {
+      statusEl = document.createElement('div');
+      statusEl.id = 'passenger-master-user-header';
+      listEl.parentNode.insertBefore(statusEl, listEl);
+    }
+
+    if (!u) {
+      if (statusEl) {
+        statusEl.innerHTML = `
+          <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:14px;margin-bottom:14px;text-align:center;">
+            <div style="font-size:1.3rem;margin-bottom:4px;">🔒</div>
+            <strong style="color:#92400e;display:block;font-size:0.95rem;margin-bottom:4px;">लॉगिन आवश्यक है (Login-Wise Private)</strong>
+            <p style="color:#b45309;font-size:0.8rem;margin:0 0 10px 0;">
+              पैसेंजर मास्टर अब प्रत्येक यूज़र के लॉगिन अकाउंट के अनुसार सुरक्षित है ताकि आपका डेटा दूसरों को न दिखे। कृपया अपने यात्रियों को सुरक्षित रखने के लिए लॉगिन करें।
+            </p>
+            <button type="button" id="btn-pm-prompt-login" class="submit-button" style="padding:6px 18px;font-size:0.82rem;background:#0284c7;display:inline-block;">
+              🔑 RailPlus में लॉगिन करें
+            </button>
+          </div>
+        `;
+        $('btn-pm-prompt-login')?.addEventListener('click', () => {
+          closePassengerModal();
+          openLoginModal();
+        });
+      }
+      if (listEl) {
+        listEl.innerHTML = '<p style="text-align:center;color:#64748b;padding:16px;font-size:0.85rem;">लॉगिन करने के बाद आपके पर्सनल मास्टर यात्री यहाँ दिखाई देंगे।</p>';
+      }
+      return;
+    }
+
+    // Logged in: show user-specific badge
+    if (statusEl) {
+      statusEl.innerHTML = `
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-weight:700;color:#166534;font-size:0.9rem;">
+              👤 ${safe(u.name || 'User')} <span style="font-size:0.78rem;font-weight:normal;color:#15803d;">(${safe(u.emailOrMobile)})</span>
+            </div>
+            <div style="font-size:0.75rem;color:#15803d;">
+              🔒 पर्सनल पैसेंजर मास्टर (केवल आपके लॉगिन पर दिखाई देगा)
+            </div>
+          </div>
+          <span style="background:#dcfce7;color:#166534;font-size:0.72rem;font-weight:700;padding:3px 8px;border-radius:12px;border:1px solid #86efac;">
+            Login-Wise Active
+          </span>
+        </div>
+      `;
+    }
+
     const passengers = getSavedPassengers();
+    if (!listEl) return;
 
     if (passengers.length === 0) {
-      listEl.innerHTML = '<p style="text-align:center;color:#64748b;padding:20px;">No passengers saved yet. Add your family or co-passengers above.</p>';
+      listEl.innerHTML = '<p style="text-align:center;color:#64748b;padding:20px;">No passengers saved in your account yet. Add your family or co-passengers above.</p>';
       return;
     }
 
@@ -2685,14 +2814,28 @@
   }
 
   function deletePassengerMaster(id) {
+    const u = getCurrentUser();
     const list = getSavedPassengers().filter(p => p.id !== id);
     savePassengerList(list);
+    if (u && (u.id || u.emailOrMobile)) {
+      fetchLive(`/api/user/master/passengers?userId=${encodeURIComponent(u.id || u.emailOrMobile)}&id=${encodeURIComponent(id)}`, {
+        method: 'DELETE'
+      }).catch(() => {});
+    }
     renderPassengerMasterList();
   }
 
   const pmForm = $('add-passenger-form') || $('passenger-master-form');
   pmForm?.addEventListener('submit', (e) => {
     e.preventDefault();
+    const u = getCurrentUser();
+    if (!u) {
+      alert('कृपया पहले लॉगिन करें। आपका पैसेंजर मास्टर आपके लॉगिन अकाउंट से जुड़ेगा ताकि कोई दूसरा इसे न देख सके।');
+      closePassengerModal();
+      openLoginModal();
+      return;
+    }
+
     const name = ($('pm-name')?.value || '').trim();
     const age = Number($('pm-age')?.value || 0);
     const gender = $('pm-gender')?.value || 'M';
@@ -2713,7 +2856,7 @@
     const currentList = getSavedPassengers();
     const exists = currentList.some(p => p.name.toLowerCase() === name.toLowerCase() && Number(p.age) === age);
     if (exists) {
-      alert('A passenger with this name and age is already saved.');
+      alert('A passenger with this name and age is already saved in your account.');
       return;
     }
 
@@ -3038,6 +3181,10 @@
 
       if (loginRes?.success && loginRes?.user) {
         saveUserProfile(loginRes.user);
+        migrateLegacyPassengers(loginRes.user);
+        await loadPassengersFromServer(loginRes.user.id || loginRes.user.emailOrMobile);
+        renderPassengerMasterList();
+        updateDashboardStats();
         closeLoginModal();
         notify('Logged in successfully! Your profile & IRCTC ID are ready for fast booking.');
       } else {
@@ -3094,6 +3241,8 @@
       $('btn-dash-logout')?.addEventListener('click', () => {
         if (confirm('Logout from RailPlus?')) {
           saveUserProfile(null);
+          renderPassengerMasterList();
+          updateDashboardStats();
           closeDashboardModal();
           notify('Logged out successfully.');
         }
@@ -3141,9 +3290,16 @@
 
   $('dash-menu-clear')?.addEventListener('click', () => {
     if (confirm('Are you sure you want to clear all your saved passengers, routes, and history? This cannot be undone.')) {
-      localStorage.removeItem(PASSENGER_STORAGE_KEY);
+      const pKey = getPassengerStorageKey();
+      if (pKey) localStorage.removeItem(pKey);
+      localStorage.removeItem('railplus_passengers');
+      const u = getCurrentUser();
+      if (u && (u.id || u.emailOrMobile)) {
+        syncPassengersToServer(u.id || u.emailOrMobile, []);
+      }
       localStorage.removeItem(JOURNEYS_STORAGE_KEY);
       localStorage.removeItem('railplus_booking_history');
+      renderPassengerMasterList();
       updateDashboardStats();
       alert('All local saved data cleared successfully.');
     }
@@ -3268,7 +3424,14 @@
     const saved = getSavedPassengers();
 
     if (saved.length === 0) {
-      listEl.innerHTML = '<p style="color:#64748b;font-size:0.9rem;padding:10px 0;">No saved passengers yet. Click "+ Quick Add" below to add a passenger.</p>';
+      const u = getCurrentUser();
+      listEl.innerHTML = u
+        ? '<p style="color:#64748b;font-size:0.9rem;padding:10px 0;">No saved passengers in your account yet. Click "+ Quick Add" below to add a passenger.</p>'
+        : '<p style="color:#64748b;font-size:0.9rem;padding:10px 0;">No saved passengers found. <button type="button" id="btn-booking-pax-login" style="background:none;border:none;color:#0284c7;text-decoration:underline;cursor:pointer;font-weight:600;padding:0;">Login</button> to load your personal Passenger Master, or click "+ Quick Add" below.</p>';
+      $('btn-booking-pax-login')?.addEventListener('click', () => {
+        closeBookingModal();
+        openLoginModal();
+      });
       return;
     }
 
@@ -3375,19 +3538,12 @@
       return;
     }
 
-    const saved = getSavedPassengers();
-    const newPax = {
-      id: 'pax_' + Date.now(),
-      name,
-      age,
-      gender,
-      berth,
-      food,
-      boarding: boarding || null,
-      createdAt: new Date().toISOString()
-    };
-    saved.push(newPax);
-    savePassengerList(saved);
+    const u = getCurrentUser();
+    if (u) {
+      const saved = getSavedPassengers();
+      saved.push(newPax);
+      savePassengerList(saved);
+    }
 
     if (activeBooking && !activeBooking.selectedPassengers.some(p => p.id === newPax.id)) {
       activeBooking.selectedPassengers.push(newPax);
@@ -3757,5 +3913,10 @@
 
   // Initialize Paytm-style user profile UI
   updateUserProfileUI();
+  const initUser = getUserProfile();
+  if (initUser) {
+    migrateLegacyPassengers(initUser);
+    loadPassengersFromServer(initUser.id || initUser.emailOrMobile);
+  }
 
 })();
