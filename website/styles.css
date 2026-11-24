@@ -2561,37 +2561,51 @@ a:hover {
   position: relative;
   display: inline-flex;
   align-items: center;
+  gap: 3px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  padding: 0 6px;
+  height: 32px;
+  box-sizing: border-box;
+}
+
+.lang-selector-wrapper:hover, .lang-selector-wrapper:focus-within {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: var(--irctc-orange);
 }
 
 .lang-select {
-  background: rgba(255, 255, 255, 0.12);
+  background: transparent;
   color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 6px;
-  padding: 5px 8px 5px 26px;
-  font-size: 0.8rem;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   outline: none;
   transition: all 0.15s ease;
   appearance: auto;
+  max-width: 75px;
+  height: 100%;
 }
 
 .lang-select:hover, .lang-select:focus {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: var(--irctc-orange);
+  background: transparent;
+  outline: none;
 }
 
 .lang-select option {
   background: #0f294a;
   color: #ffffff;
+  font-size: 0.8rem;
 }
 
 .lang-icon {
-  position: absolute;
-  left: 8px;
+  font-size: 0.78rem;
   pointer-events: none;
-  font-size: 0.85rem;
+  line-height: 1;
 }
 
 /* Dark Mode Button */
@@ -3455,7 +3469,7 @@ a:hover {
   align-items: center !important;
   justify-content: space-between !important;
   gap: 16px !important;
-  max-width: 1200px !important;
+  max-width: 1240px !important;
   margin: 0 auto !important;
   padding: 8px 16px !important;
 }
@@ -3463,7 +3477,8 @@ a:hover {
 .header-brand {
   display: flex !important;
   align-items: center !important;
-  flex-shrink: 0 !important;
+  flex: 1 1 0% !important;
+  min-width: 0 !important;
 }
 
 .logo-link {
@@ -3517,14 +3532,16 @@ a:hover {
 .header-nav-links {
   display: flex !important;
   align-items: center !important;
-  gap: 4px !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  flex: 0 0 auto !important;
 }
 
 .nav-link-btn, .nav-item, .nav-item-btn {
   color: #e2e8f0 !important;
   font-size: 0.82rem !important;
   font-weight: 600 !important;
-  padding: 6px 10px !important;
+  padding: 6px 12px !important;
   border-radius: 6px !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -3535,6 +3552,8 @@ a:hover {
   text-decoration: none !important;
   transition: all 0.15s ease !important;
   white-space: nowrap !important;
+  height: 34px !important;
+  box-sizing: border-box !important;
 }
 
 .nav-link-btn:hover, .nav-item:hover, .nav-item-btn:hover {
@@ -3545,8 +3564,18 @@ a:hover {
 .header-actions {
   display: flex !important;
   align-items: center !important;
+  justify-content: flex-end !important;
   gap: 8px !important;
-  flex-shrink: 0 !important;
+  flex: 1 1 0% !important;
+  min-width: 0 !important;
+}
+
+.header-action-btn, .header-install-btn, .header-install-action, .theme-toggle-btn, .user-login-btn, .dashboard-icon-btn {
+  height: 32px !important;
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .header-install-btn, .header-install-action {
