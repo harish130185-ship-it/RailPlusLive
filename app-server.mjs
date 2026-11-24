@@ -24,6 +24,34 @@ const STATIC_FILES = new Map([
   ['/manifest.webmanifest', ['manifest.webmanifest', 'application/manifest+json']]
 ]);
 
+const STATION_CLUSTERS = [
+  ['ST', 'UDN'],
+  ['NDLS', 'DLI', 'NZM', 'ANVT', 'DEE', 'DSA'],
+  ['MMCT', 'BDTS', 'CSMT', 'DR', 'LTT', 'BCT', 'TNA'],
+  ['HWH', 'SDAH', 'KOAA', 'SHM'],
+  ['BSB', 'DDU', 'BCY', 'MUV'],
+  ['ADI', 'SBT', 'GER', 'GIMB'],
+  ['CNB', 'CPA'],
+  ['PNBE', 'DNR', 'RJPB', 'PPTA'],
+  ['MAS', 'MS', 'TBM', 'PER'],
+  ['SBC', 'YPR', 'SMVB'],
+  ['SC', 'HYB', 'KCG']
+];
+
+function getClusterStations(code) {
+  if (!code) return [];
+  const upper = String(code).trim().toUpperCase();
+  const set = new Set();
+  for (const cluster of STATION_CLUSTERS) {
+    if (cluster.includes(upper)) {
+      for (const stn of cluster) {
+        if (stn !== upper) set.add(stn);
+      }
+    }
+  }
+  return Array.from(set);
+}
+
 function text(value) {
   if (value === undefined || value === null || typeof value === 'object') return '';
   return String(value).trim();
@@ -702,46 +730,76 @@ export function createHandler({ apiKey = process.env.RAILKIT_API_KEY, apiUrl = p
         try {
           providerResult = await providerCall(method, [number, from, to, sdkDate, travelClass, quota]);
         } catch (e) {
-          if (pathname === '/api/seats') {
-            const stations = await getTrainRoute(number);
-            const fromIndex = stations.findIndex(station => station.code === from);
-            const toIndex = stations.findIndex(station => station.code === to);
-            if (fromIndex < 0 || toIndex < 0 || toIndex <= fromIndex) {
-              return sendJson(res, 409, {
-                success: false,
-                message: 'यह ट्रेन चुने हुए station segment पर नहीं चलती। नीचे इस ट्रेन के वास्तविक stops में से सही station चुनें।',
-                data: { stations }
+          if (pathname === '/api/seats' || pathname === '/api/fare') {
+            // 1. Try alternative cluster stations on the train's route (e.g. ST <-> UDN)
+            const altFromList = getClusterStations(from);
+            for (const altFrom of altFromList) {
+              try {
+                providerResult = await providerCall(method, [number, altFrom, to, sdkDate, travelClass, quota]);
+                if (providerResult) break;
+              } catch (_) {}
+            }
+            if (!providerResult) {
+              const altToList = getClusterStations(to);
+              for (const altTo of altToList) {
+                try {
+                  providerResult = await providerCall(method, [number, from, altTo, sdkDate, travelClass, quota]);
+                  if (providerResult) break;
+                } catch (_) {}
+              }
+            }
+
+            if (!providerResult && pathname === '/api/seats') {
+              const stations = await getTrainRoute(number).catch(() => []);
+              const fromIndex = stations.findIndex(station => station.code === from || altFromList.includes(station.code));
+              const toIndex = stations.findIndex(station => station.code === to);
+              if (fromIndex < 0 || toIndex < 0 || toIndex <= fromIndex) {
+                if (stations.length > 0) {
+                  return sendJson(res, 409, {
+                    success: false,
+                    message: 'यह ट्रेन चुने हुए station segment पर नहीं चलती। नीचे इस ट्रेन के वास्तविक stops में से सही station चुनें।',
+                    data: { stations }
+                  });
+                }
+                throw e;
+              }
+
+              // Train serves this segment, but upstream IRCTC API returned no live seat records.
+              // Calculate realistic approximate distance & fare, but NEVER report fake "AVAILABLE 42".
+              const approxDist = Math.max(120, (toIndex - fromIndex) * 55);
+              const rateMap = { '2S': 0.22, 'SL': 0.42, 'CC': 0.95, '3E': 0.98, '3A': 1.10, '2A': 1.60, '1A': 2.65 };
+              const baseRate = rateMap[travelClass] || 0.50;
+              const resFee = travelClass.includes('A') ? 40 : 20;
+              const sfFee = 45;
+              const approxTotal = Math.round((approxDist * baseRate) + resFee + sfFee);
+              return sendJson(res, 200, {
+                success: true,
+                data: {
+                  trainNumber: number,
+                  trainName: '',
+                  from,
+                  to,
+                  class: travelClass,
+                  quota,
+                  fare: {
+                    base: Math.round(approxDist * baseRate),
+                    reservation: resFee,
+                    superfast: sfFee,
+                    total: approxTotal
+                  },
+                  availability: [
+                    {
+                      date: sdkDate,
+                      status: 'IRCTC पर देखें',
+                      prediction: 'Live sync unavailable',
+                      rawStatus: 'NOT_AVAILABLE'
+                    }
+                  ]
+                }
               });
             }
-            // Train serves this segment, but upstream proxy failed. Provide realistic calculated fare & available seats
-            const approxDist = Math.max(120, (toIndex - fromIndex) * 55);
-            const rateMap = { '2S': 0.22, 'SL': 0.42, 'CC': 0.95, '3E': 0.98, '3A': 1.10, '2A': 1.60, '1A': 2.65 };
-            const baseRate = rateMap[travelClass] || 0.50;
-            const resFee = travelClass.includes('A') ? 40 : 20;
-            const sfFee = 45;
-            const approxTotal = Math.round((approxDist * baseRate) + resFee + sfFee);
-            return sendJson(res, 200, {
-              success: true,
-              data: {
-                trainNumber: number,
-                trainName: '',
-                from,
-                to,
-                class: travelClass,
-                quota,
-                fare: {
-                  base: Math.round(approxDist * baseRate),
-                  reservation: resFee,
-                  superfast: sfFee,
-                  total: approxTotal
-                },
-                availability: [
-                  { date: sdkDate, status: 'AVAILABLE 42', prediction: 'High' }
-                ]
-              }
-            });
           }
-          throw e;
+          if (!providerResult) throw e;
         }
         const data = pathname === '/api/seats' ? normalizeAvailability(providerResult) : normalizeFare(providerResult);
         return sendJson(res, 200, { success: true, data });

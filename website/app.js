@@ -1265,6 +1265,20 @@
 
   const routeSeatCache = new Map();
 
+  function getCachedSeat(key) {
+    const item = routeSeatCache.get(key);
+    if (!item) return null;
+    if (Date.now() - item.ts > 60000) {
+      routeSeatCache.delete(key);
+      return null;
+    }
+    return item.data;
+  }
+
+  function setCachedSeat(key, data) {
+    routeSeatCache.set(key, { data, ts: Date.now() });
+  }
+
   function parseTrainClasses(t) {
     if (t.classes && typeof t.classes === 'string') {
       const raw = t.classes.split(',').map(s => s.trim().toUpperCase());
@@ -1382,14 +1396,22 @@
         statusEl.style.background = '#fee2e2';
         statusEl.style.color = '#991b1b';
         statusEl.textContent = 'REGRET';
+      } else if (rawStatus.includes('IRCTC') || rawStatus.includes('UNAVAILABLE') || rawStatus.includes('अनुपलब्ध')) {
+        statusEl.style.background = '#fef3c7';
+        statusEl.style.color = '#92400e';
+        statusEl.textContent = 'IRCTC पर देखें';
       } else {
         statusEl.textContent = rawStatus || 'जांचें';
       }
 
       const prediction = typeof firstAvail === 'object' ? (firstAvail.prediction || firstAvail.confirmProbability) : null;
-      if (predEl && prediction) {
-        predEl.textContent = `${prediction} Chance`;
-        predEl.hidden = false;
+      if (predEl) {
+        if (prediction && !prediction.toLowerCase().includes('unavailable')) {
+          predEl.textContent = `${prediction} Chance`;
+          predEl.hidden = false;
+        } else {
+          predEl.hidden = true;
+        }
       }
     }
   }
@@ -1398,6 +1420,8 @@
     if (!card) return;
     const trainCard = card.closest('.train-journey-card');
     if (!trainCard) return;
+
+    const wasAlreadySelected = card.classList.contains('selected');
 
     // Remove selected from all sibling cards in this train
     trainCard.querySelectorAll('.class-card').forEach(c => c.classList.remove('selected', 'active'));
@@ -1428,11 +1452,11 @@
     }
 
     if (trainNo && fromCode && toCode && date && cls) {
-      fetchClassSeat(trainNo, fromCode, toCode, date, cls);
+      fetchClassSeat(trainNo, fromCode, toCode, date, cls, wasAlreadySelected);
     }
   }
 
-  async function fetchClassSeat(trainNo, fromCode, toCode, date, cls) {
+  async function fetchClassSeat(trainNo, fromCode, toCode, date, cls, forceRefresh = false) {
     const safeFrom = fromCode || extractStationCode($('route-from-input'));
     const safeTo = toCode || extractStationCode($('route-to-input'));
     const safeDate = (date && date !== 'undefined' && date !== 'null') ? date : ($('route-date-input')?.value || todayIso);
@@ -1442,9 +1466,12 @@
     const predEl = document.getElementById(`pred-${trainNo}-${cls}`);
     const cardEl = document.getElementById(`class-${trainNo}-${cls}`) || document.querySelector(`.class-card[data-train="${trainNo}"][data-class="${cls}"]`);
 
-    if (routeSeatCache.has(cacheKey)) {
-      applySeatDataToCard(routeSeatCache.get(cacheKey), fareEl, statusEl, predEl, cardEl);
-      return;
+    if (!forceRefresh) {
+      const cached = getCachedSeat(cacheKey);
+      if (cached) {
+        applySeatDataToCard(cached, fareEl, statusEl, predEl, cardEl);
+        return;
+      }
     }
 
     if (statusEl) {
@@ -1455,7 +1482,7 @@
     try {
       const url = `/api/seats?number=${encodeURIComponent(trainNo)}&from=${encodeURIComponent(safeFrom)}&to=${encodeURIComponent(safeTo)}&date=${encodeURIComponent(safeDate)}&class=${encodeURIComponent(cls)}&quota=GN`;
       const res = await fetchLive(url);
-      routeSeatCache.set(cacheKey, res);
+      setCachedSeat(cacheKey, res);
       applySeatDataToCard(res, fareEl, statusEl, predEl, cardEl);
     } catch (err) {
       if (statusEl) {
@@ -1787,6 +1814,7 @@
   $('route-form')?.addEventListener('submit', async (event) => {
     event.preventDefault();
     hideFeedback();
+    routeSeatCache.clear();
 
     const from = extractStationCode($('route-from-input'));
     const to = extractStationCode($('route-to-input'));
