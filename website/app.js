@@ -3566,6 +3566,16 @@
       return;
     }
 
+    const newPax = {
+      id: 'pax_' + Date.now(),
+      name,
+      age,
+      gender,
+      berth,
+      food,
+      boarding: boarding || ''
+    };
+
     const u = getCurrentUser();
     if (u) {
       const saved = getSavedPassengers();

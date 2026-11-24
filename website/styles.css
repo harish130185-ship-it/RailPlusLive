@@ -3467,12 +3467,12 @@ a:hover {
 .header-inner, .header-container {
   display: flex !important;
   align-items: center !important;
-  justify-content: flex-start !important;
-  gap: 16px !important;
-  max-width: 1400px !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  max-width: 1200px !important;
   width: 100% !important;
   margin: 0 auto !important;
-  padding: 8px 20px !important;
+  padding: 8px 16px !important;
   box-sizing: border-box !important;
 }
 
@@ -3480,7 +3480,7 @@ a:hover {
   display: flex !important;
   align-items: center !important;
   flex-shrink: 0 !important;
-  margin-right: 18px !important;
+  margin-right: 0 !important;
 }
 
 .logo-link {
@@ -3534,6 +3534,7 @@ a:hover {
 .header-nav-links {
   display: flex !important;
   align-items: center !important;
+  justify-content: center !important;
   gap: 8px !important;
   flex-shrink: 0 !important;
 }
@@ -3569,8 +3570,31 @@ a:hover {
   align-items: center !important;
   justify-content: flex-end !important;
   gap: 8px !important;
-  margin-left: auto !important;
+  margin-left: 0 !important;
   flex-shrink: 0 !important;
+}
+
+/* Tablet & Smaller Desktop Responsive Spacing (769px to 1150px) */
+@media (max-width: 1150px) and (min-width: 769px) {
+  .header-inner, .header-container {
+    padding: 8px 10px !important;
+    gap: 8px !important;
+  }
+  .brand-subtitle {
+    display: none !important;
+  }
+  .nav-link-btn, .nav-item, .nav-item-btn {
+    padding: 5px 8px !important;
+    font-size: 0.78rem !important;
+    gap: 4px !important;
+  }
+  .header-actions {
+    gap: 6px !important;
+  }
+  .header-install-action, .header-install-btn {
+    padding: 0 8px !important;
+    font-size: 0.75rem !important;
+  }
 }
 
 .header-action-btn,
