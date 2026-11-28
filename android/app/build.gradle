@@ -1,15 +1,40 @@
-plugins { id 'com.android.application' }
+plugins {
+    id 'com.android.application'
+}
 
 android {
-    namespace 'com.railpulse.app'
+    namespace 'com.railplus.app'
     compileSdk 35
 
     defaultConfig {
-        applicationId 'com.railpulse.app'
+        applicationId 'com.railplus.app'
         minSdk 24
         targetSdk 35
         versionCode 1
-        versionName '1.0'
+        versionName '1.0.0'
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        release {
+            storeFile file("railplus-release.jks")
+            storePassword "railplus2026"
+            keyAlias "railplus"
+            keyPassword "railplus2026"
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            applicationIdSuffix ".debug"
+            debuggable true
+        }
     }
 
     compileOptions {
@@ -17,9 +42,52 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
-    buildTypes {
-        release {
-            minifyEnabled false
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            outputFileName = "railplus-v${variant.versionName}.apk"
         }
     }
+}
+
+tasks.register('exportArtifacts') {
+    doLast {
+        def vName = android.defaultConfig.versionName
+        def rootDirTarget = file("${rootDir}/..")
+        def apkSrc = file("${layout.buildDirectory.get()}/outputs/apk/release/railplus-v${vName}.apk")
+        def aabSrc = file("${layout.buildDirectory.get()}/outputs/bundle/release/app-release.aab")
+
+        if (apkSrc.exists()) {
+            copy {
+                from apkSrc
+                into rootDirTarget
+                rename { "railplus.apk" }
+            }
+            copy {
+                from apkSrc
+                into rootDirTarget
+                rename { "railplus-v${vName}.apk" }
+            }
+            copy {
+                from apkSrc
+                into file("${rootDir}/../website")
+                rename { "railplus.apk" }
+            }
+        }
+        if (aabSrc.exists()) {
+            copy {
+                from aabSrc
+                into rootDirTarget
+                rename { "railplus.aab" }
+            }
+            copy {
+                from aabSrc
+                into rootDirTarget
+                rename { "railplus-v${vName}.aab" }
+            }
+        }
+    }
+}
+
+tasks.matching { it.name == 'bundleRelease' || it.name == 'assembleRelease' }.configureEach {
+    finalizedBy 'exportArtifacts'
 }

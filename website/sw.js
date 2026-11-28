@@ -1,10 +1,11 @@
-const CACHE_NAME = 'railplus-cache-v16';
+const CACHE_NAME = 'railplus-cache-v22';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
-  '/styles.css?v=14.0',
-  '/app.js?v=14.0',
-  '/config.js?v=14.0',
+  '/privacy.html',
+  '/styles.css?v=22.0',
+  '/app.js?v=22.0',
+  '/config.js?v=22.0',
   '/logo.png',
   '/icon-192.png',
   '/icon-512.png',
@@ -34,8 +35,8 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Bypass API calls completely
-  if (url.pathname.startsWith('/api/')) {
+  // Bypass API calls and APK binaries completely
+  if (url.pathname.startsWith('/api/') || url.pathname.endsWith('.apk')) {
     return;
   }
 

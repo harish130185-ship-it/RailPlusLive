@@ -479,6 +479,134 @@ a:hover {
   padding: 0 20px 18px;
 }
 
+/* App Install Choice Modal (Android APK vs Web App) */
+.install-choice-modal {
+  max-width: 480px !important;
+  width: 100% !important;
+}
+
+.install-choice-subtitle {
+  font-size: 0.88rem;
+  color: #475569;
+  margin: 0 0 14px;
+  line-height: 1.45;
+}
+
+.install-options-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.install-option-card {
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px 16px;
+  background: #f8fafc;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.install-option-card:hover {
+  border-color: #0f294a;
+  box-shadow: 0 4px 14px rgba(15, 41, 74, 0.08);
+  background: #ffffff;
+}
+
+.install-option-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.install-option-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.install-option-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.install-option-title-wrap strong {
+  font-size: 0.95rem;
+  color: #0f294a;
+  font-weight: 700;
+}
+
+.install-badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  width: fit-content;
+}
+
+.badge-apk {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.badge-pwa {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.install-option-desc {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.install-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  padding: 9px 16px;
+  border-radius: 7px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: none;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 4px;
+}
+
+.install-action-btn.btn-apk {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.install-action-btn.btn-apk:hover {
+  background: #15803d;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
+}
+
+.install-action-btn.btn-pwa {
+  background: var(--irctc-orange, #ea580c);
+  color: #ffffff;
+}
+
+.install-action-btn.btn-pwa:hover {
+  background: #c2410c;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.3);
+}
+
 /* --- Main Layout --- */
 .main-content {
   flex: 1;

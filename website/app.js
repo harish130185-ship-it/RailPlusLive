@@ -2074,7 +2074,11 @@
 
   function openPwaGuideModal() {
     const modal = $('pwa-guide-modal');
-    if (modal) modal.hidden = false;
+    if (modal) {
+      modal.hidden = false;
+      const steps = $('pwa-steps-section');
+      if (steps) steps.style.display = 'none';
+    }
   }
 
   function closePwaGuideModal() {
@@ -2088,23 +2092,9 @@
     deferredInstallPrompt = e;
   });
 
-  // Handle Install Action
-  async function triggerAppInstall() {
-    if (deferredInstallPrompt) {
-      try {
-        deferredInstallPrompt.prompt();
-        const choice = await deferredInstallPrompt.userChoice;
-        if (choice?.outcome === 'accepted') {
-          hidePwaBanner();
-        }
-      } catch (_) {
-        openPwaGuideModal();
-      }
-      deferredInstallPrompt = null;
-    } else {
-      // If browser native prompt is in cooldown or on iOS Safari, show step-by-step installation guide
-      openPwaGuideModal();
-    }
+  // Handle Install Action: Opens choice modal (Android APK vs Web App)
+  function triggerAppInstall() {
+    openPwaGuideModal();
   }
 
   // Wire buttons
@@ -2113,6 +2103,38 @@
   $('btn-pwa-dismiss')?.addEventListener('click', hidePwaBanner);
   $('btn-close-pwa-modal')?.addEventListener('click', closePwaGuideModal);
   $('btn-understood-pwa')?.addEventListener('click', closePwaGuideModal);
+
+  // APK Download button handler with instant notification
+  $('btn-download-apk')?.addEventListener('click', () => {
+    notify('✓ Android APK download started (railplus.apk)', false);
+    setTimeout(() => {
+      closePwaGuideModal();
+    }, 1500);
+  });
+
+  // PWA / Web App button inside modal
+  $('btn-trigger-pwa-install')?.addEventListener('click', async () => {
+    if (deferredInstallPrompt) {
+      try {
+        deferredInstallPrompt.prompt();
+        const choice = await deferredInstallPrompt.userChoice;
+        if (choice?.outcome === 'accepted') {
+          hidePwaBanner();
+          closePwaGuideModal();
+          notify('✓ RailPlus Web App added to Home Screen!', false);
+        }
+      } catch (_) {
+        const steps = $('pwa-steps-section');
+        if (steps) steps.style.display = 'block';
+      }
+      deferredInstallPrompt = null;
+    } else {
+      const steps = $('pwa-steps-section');
+      if (steps) {
+        steps.style.display = steps.style.display === 'none' ? 'block' : 'none';
+      }
+    }
+  });
 
   // Close modal when clicking on overlay background
   $('pwa-guide-modal')?.addEventListener('click', (e) => {
@@ -2266,13 +2288,24 @@
       footer_privacy: 'Privacy & Security: No Aadhaar or IRCTC passwords stored.',
       footer_encryption: 'Local storage security with private user sandboxing.',
       install_app_title: 'Install RailPlus App',
+      install_modal_title: 'Install / Download RailPlus',
+      install_modal_subtitle: 'Choose how you want to install RailPlus on your device:',
+      install_option_apk_title: 'Android App (.APK)',
+      install_option_apk_badge: 'Recommended for Android',
+      install_option_apk_desc: 'Download the official Android APK directly. Fast installation for all Android smartphones.',
+      install_btn_apk: 'Download APK (v1.0.0)',
+      install_option_pwa_title: 'Web App (Add to Home)',
+      install_option_pwa_badge: 'All Devices • No Download',
+      install_option_pwa_desc: 'Add directly to your home screen from your browser. Works on iPhone, Android, and Desktop.',
+      install_btn_pwa: 'Add to Home Screen',
       install_step_1_title: 'Open Browser Menu',
       install_step_1_desc: 'Tap the three dots (⋮) in Chrome or the Share button in Safari.',
       install_step_2_title: 'Select Install or Add to Home',
       install_step_2_desc: 'Choose "Install RailPlus" or "Add to Home Screen".',
       install_step_3_title: 'Enjoy Native App Experience',
       install_step_3_desc: 'Launch RailPlus from your home screen with zero repeated banners.',
-      btn_got_it: 'Got it'
+      btn_got_it: 'Got it',
+      btn_close: 'Close'
     },
     hi: {
       header_subtitle: 'IRCTC-प्रेरित स्मार्ट रेलवे बुकिंग पोर्टल',
@@ -2404,13 +2437,24 @@
       footer_privacy: 'गोपनीयता: कोई आधार या IRCTC पासवर्ड सेव नहीं किया जाता।',
       footer_encryption: 'निजी ब्राउज़र स्थानीय स्टोरेज सुरक्षा।',
       install_app_title: 'RailPlus ऐप इंस्टॉल करें',
+      install_modal_title: 'RailPlus ऐप इंस्टॉल या डाउनलोड करें',
+      install_modal_subtitle: 'अपनी सुविधानुसार ऐप इंस्टॉल करने का विकल्प चुनें:',
+      install_option_apk_title: 'Android ऐप (.APK फ़ाइल)',
+      install_option_apk_badge: 'Android फ़ोनों के लिए सर्वोत्तम',
+      install_option_apk_desc: 'सीधे आधिकारिक Android APK डाउनलोड करें। सभी Android स्मार्टफोन पर तुरंत इंस्टॉल।',
+      install_btn_apk: 'APK डाउनलोड करें (v1.0.0)',
+      install_option_pwa_title: 'वेब ऐप (होम स्क्रीन में जोड़ें)',
+      install_option_pwa_badge: 'सभी डिवाइस • बिना डाउनलोड',
+      install_option_pwa_desc: 'बिना कोई फ़ाइल डाउनलोड किए सीधे ब्राउज़र से होम स्क्रीन पर जोड़ें। iPhone और Android दोनों पर काम करता है।',
+      install_btn_pwa: 'होम स्क्रीन में जोड़ें',
       install_step_1_title: 'ब्राउज़र मेन्यू खोलें',
       install_step_1_desc: 'Chrome में तीन बिंदु (⋮) या Safari में Share बटन दबाएं।',
       install_step_2_title: 'होम स्क्रीन में जोड़ें चुनें',
       install_step_2_desc: '"Install RailPlus" या "Add to Home Screen" चुनें।',
       install_step_3_title: 'नेगटिव ऐप की तरह चलाएं',
       install_step_3_desc: 'बिना किसी रुकावट या बार-बार बैनर के अपनी होम स्क्रीन से ऐप खोलें।',
-      btn_got_it: 'समझ गया'
+      btn_got_it: 'समझ गया',
+      btn_close: 'बंद करें'
     },
     hinglish: {
       header_subtitle: 'IRCTC-Inspired Smart Railway Portal',
@@ -2542,13 +2586,24 @@
       footer_privacy: 'Privacy: Koi Aadhaar ya IRCTC password save nahi hota.',
       footer_encryption: 'Local storage security with private user sandboxing.',
       install_app_title: 'RailPlus App Install Karein',
+      install_modal_title: 'RailPlus App Install ya Download Karein',
+      install_modal_subtitle: 'App install karne ka option select karein:',
+      install_option_apk_title: 'Android App (.APK File)',
+      install_option_apk_badge: 'Android Phones ke liye Best',
+      install_option_apk_desc: 'Direct official Android APK download karein. Sabhi Android phone par instant install.',
+      install_btn_apk: 'APK Download Karein (v1.0.0)',
+      install_option_pwa_title: 'Web App (Add to Home)',
+      install_option_pwa_badge: 'All Devices • No Download',
+      install_option_pwa_desc: 'Bina download kiye direct browser se home screen me add karein. iPhone & Android dono par chalta hai.',
+      install_btn_pwa: 'Home Screen me Add Karein',
       install_step_1_title: 'Browser Menu Kholein',
       install_step_1_desc: 'Chrome me 3 dots (⋮) ya Safari me Share dabayein.',
       install_step_2_title: 'Add to Home Screen Chunein',
       install_step_2_desc: '"Install RailPlus" ya "Add to Home Screen" select karein.',
       install_step_3_title: 'Native App Jaisa Chalayein',
       install_step_3_desc: 'Bina kisi popup ke direct home screen se open karein.',
-      btn_got_it: 'Theek Hai (Got it)'
+      btn_got_it: 'Theek Hai (Got it)',
+      btn_close: 'Close'
     }
   };
 

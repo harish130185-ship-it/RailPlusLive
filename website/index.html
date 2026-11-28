@@ -16,25 +16,67 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="styles.css?v=20.0" />
+  <link rel="stylesheet" href="styles.css?v=22.0" />
 </head>
 <body>
 
-  <!-- PWA Manual Guide Modal (Only shown if user explicitly clicks install on an unsupported browser) -->
+  <!-- App Install & Download Choice Modal (Android APK vs Web App PWA) -->
   <div id="pwa-guide-modal" class="pwa-modal-overlay" hidden>
-    <div class="pwa-modal-card">
+    <div class="pwa-modal-card install-choice-modal">
       <div class="pwa-modal-header">
         <div class="pwa-brand-icon">
           <img src="logo.png" alt="RailPlus" style="width:28px;height:28px;object-fit:contain;background:#ffffff;border-radius:4px;padding:2px;" />
         </div>
-        <h3 data-i18n="install_app_title">Install RailPlus App</h3>
+        <h3 data-i18n="install_modal_title">Install RailPlus App</h3>
         <button type="button" id="btn-close-pwa-modal" class="modal-close-btn" aria-label="Close">✕</button>
       </div>
+
       <div class="pwa-modal-body">
-        <p style="font-size:0.9rem;color:var(--text-muted);margin-bottom:16px;">
-          Install RailPlus on your phone or computer for fast, one-tap access:
+        <p class="install-choice-subtitle" data-i18n="install_modal_subtitle">
+          Choose how you want to install RailPlus on your device:
         </p>
-        <div class="pwa-instruction-steps">
+
+        <!-- Two Options Cards -->
+        <div class="install-options-grid">
+          <!-- Option 1: Android APK -->
+          <div class="install-option-card apk-card">
+            <div class="install-option-header">
+              <span class="install-option-icon">🤖</span>
+              <div class="install-option-title-wrap">
+                <strong data-i18n="install_option_apk_title">Android App (.APK)</strong>
+                <span class="install-badge badge-apk" data-i18n="install_option_apk_badge">Recommended for Android</span>
+              </div>
+            </div>
+            <p class="install-option-desc" data-i18n="install_option_apk_desc">
+              Download the official Android APK directly. Fast installation for all Android smartphones.
+            </p>
+            <a href="railplus.apk" download="railplus.apk" id="btn-download-apk" class="install-action-btn btn-apk">
+              <span>📥</span>
+              <span data-i18n="install_btn_apk">Download APK (v1.0.0)</span>
+            </a>
+          </div>
+
+          <!-- Option 2: Web App (PWA) -->
+          <div class="install-option-card pwa-card">
+            <div class="install-option-header">
+              <span class="install-option-icon">🌐</span>
+              <div class="install-option-title-wrap">
+                <strong data-i18n="install_option_pwa_title">Web App (Add to Home)</strong>
+                <span class="install-badge badge-pwa" data-i18n="install_option_pwa_badge">All Devices • No Download</span>
+              </div>
+            </div>
+            <p class="install-option-desc" data-i18n="install_option_pwa_desc">
+              Add directly to your home screen from your browser. Works on iPhone, Android, and Desktop.
+            </p>
+            <button type="button" id="btn-trigger-pwa-install" class="install-action-btn btn-pwa">
+              <span>📲</span>
+              <span data-i18n="install_btn_pwa">Add to Home Screen</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Collapsible PWA Step-by-Step Instructions -->
+        <div id="pwa-steps-section" class="pwa-instruction-steps" style="display:none;margin-top:14px;border-top:1px dashed #cbd5e1;padding-top:12px;">
           <div class="step-item">
             <div class="step-num">1</div>
             <div class="step-text">
@@ -58,8 +100,9 @@
           </div>
         </div>
       </div>
-      <div class="pwa-modal-footer">
-        <button type="button" id="btn-understood-pwa" class="submit-button" style="height:38px;padding:0 24px;" data-i18n="btn_got_it">Got it</button>
+
+      <div class="pwa-modal-footer" style="display:flex;justify-content:flex-end;">
+        <button type="button" id="btn-understood-pwa" class="submit-button" style="height:36px;padding:0 20px;background:#64748b;" data-i18n="btn_close">Close</button>
       </div>
     </div>
   </div>
@@ -1269,15 +1312,16 @@
           <li data-i18n="footer_helpline">Railway Helpline: 139 (24x7)</li>
           <li data-i18n="footer_privacy">Security: No Aadhaar or IRCTC passwords stored.</li>
           <li data-i18n="footer_encryption">Client-side local sandbox encryption.</li>
+          <li><a href="privacy.html" style="color:#93c5fd;text-decoration:none;font-weight:600;" target="_blank">🔒 Privacy Policy &amp; Disclaimer</a></li>
         </ul>
       </div>
     </div>
     <div class="footer-bottom">
-      <span>&copy; 2026 RailPlus.in — All Rights Reserved. Indian Railways and IRCTC are registered trademarks of their respective owners.</span>
+      <span>&copy; 2026 RailPlus.in — All Rights Reserved. Indian Railways and IRCTC are registered trademarks of their respective owners. <a href="privacy.html" style="color:#93c5fd;text-decoration:underline;margin-left:6px;" target="_blank">Privacy Policy</a></span>
     </div>
   </footer>
 
-  <script src="config.js?v=20.0"></script>
-  <script src="app.js?v=20.0"></script>
+  <script src="config.js?v=22.0"></script>
+  <script src="app.js?v=22.0"></script>
 </body>
 </html>

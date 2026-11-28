@@ -21,7 +21,10 @@ const STATIC_FILES = new Map([
   ['/icon-192.png', ['icon-192.png', 'image/png']],
   ['/icon-512.png', ['icon-512.png', 'image/png']],
   ['/logo.png', ['logo.png', 'image/png']],
-  ['/manifest.webmanifest', ['manifest.webmanifest', 'application/manifest+json']]
+  ['/manifest.webmanifest', ['manifest.webmanifest', 'application/manifest+json']],
+  ['/privacy.html', ['privacy.html', 'text/html; charset=utf-8']],
+  ['/railplus.apk', ['railplus.apk', 'application/vnd.android.package-archive']],
+  ['/download/railplus.apk', ['railplus.apk', 'application/vnd.android.package-archive']]
 ]);
 
 const STATION_CLUSTERS = [
@@ -809,13 +812,18 @@ export function createHandler({ apiKey = process.env.RAILKIT_API_KEY, apiUrl = p
       if (!staticDef || req.method !== 'GET') return error(res, 404, 'Page not found');
       const [file, mime] = staticDef;
       const bytes = await readFile(path.join(SITE, file));
-      res.writeHead(200, { 
-        'Content-Type': mime, 
+      const headers = {
+        'Content-Type': mime,
         'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
         'Pragma': 'no-cache',
-        'Expires': '0',
-        'Clear-Site-Data': '"cache", "storage"'
-      });
+        'Expires': '0'
+      };
+      if (file.endsWith('.apk')) {
+        headers['Content-Disposition'] = 'attachment; filename="railplus.apk"';
+      } else {
+        headers['Clear-Site-Data'] = '"cache", "storage"';
+      }
+      res.writeHead(200, headers);
       res.end(bytes);
     } catch (e) {
       const status = [400, 404, 413, 429, 503].includes(e.status) ? e.status : 502;

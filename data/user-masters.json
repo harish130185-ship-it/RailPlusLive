@@ -1,12 +1,12 @@
 {
   "rp_9876543210": {
     "passengers": [],
-    "updatedAt": "2026-11-24T10:18:33.102Z"
+    "updatedAt": "2026-11-28T12:54:24.810Z"
   },
   "rp_9123456780": {
     "passengers": [
       {
-        "id": "pax_179551551309785ns",
+        "id": "pax_1795870464806h5wh",
         "name": "User B Friend",
         "age": 24,
         "gender": "Female",
@@ -14,9 +14,9 @@
         "food": "Veg",
         "nickname": "",
         "boarding": "",
-        "createdAt": "2026-11-24T10:18:33.097Z"
+        "createdAt": "2026-11-28T12:54:24.806Z"
       }
     ],
-    "updatedAt": "2026-11-24T10:18:33.097Z"
+    "updatedAt": "2026-11-28T12:54:24.806Z"
   }
 }

@@ -165,6 +165,12 @@ test('static site loads and API errors do not leak credentials', async () => {
     const page = await fetch(url);
     assert.equal(page.status,200);
     assert.match(await page.text(),/RailPlus/);
+
+    const apk = await fetch(`${url}/railplus.apk`);
+    assert.equal(apk.status, 200);
+    assert.equal(apk.headers.get('content-type'), 'application/vnd.android.package-archive');
+    assert.match(apk.headers.get('content-disposition') || '', /railplus\.apk/);
+
     const resp = await fetch(`${url}/api/pnr`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({number:'1234567890'})});
     const body = await resp.text();
     assert.equal(resp.status,502);
